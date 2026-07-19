@@ -1,0 +1,15 @@
+# Сборка CMake (папки компиляции)
+cmake-build-debug/
+cmake-build-release/
+/build/
+
+# Настройки среды разработки CLion
+.idea/
+
+# бинарные файлы моделей (Их нельзя пушить на Git!)
+*.weights
+*.onnx
+
+# Системные файлы
+Thumbs.db
+.DS_Store
