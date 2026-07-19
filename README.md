@@ -70,7 +70,9 @@ net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
 ├── include/            # Заголовочные файлы (.h)
 ├── src/                # Исходный код (.cpp)
 │   ├── main.cpp        # Точка входа, захват видеопотока
-│   └── detector.cpp    # Логика инференса YOLO и фильтрация NMS
+│   ├── detector.cpp    # Логика инференса YOLO и фильтрация NMS
+│   ├── preprocessor.cpp # Предобработка изображения
+│   └── visualizator.cpp # Отрисовка 
 ├── model/              # Конфигурация модели
 │   ├── coco.names      # Список из 80 классов
 │   └── yolov4-tiny.cfg # Архитектура сети
