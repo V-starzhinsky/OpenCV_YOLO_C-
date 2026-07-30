@@ -1,5 +1,5 @@
 // visualizer.cpp
-#include <opencv2/opencv.hpp>
+#define NOMINMAX // Запрещает Windows ломать функции min и max
 #include "visualizer.hpp"
 
 #include "detector.hpp"
@@ -11,9 +11,7 @@
 
 using namespace cv;
 
-// ============================================================
 // КОНСТРУКТОР
-// ============================================================
 Visualizer::Visualizer(
         Scalar color,
         int thickness,
@@ -35,9 +33,7 @@ Visualizer::Visualizer(
 {
 }
 
-// ============================================================
-// ОСНОВНОЙ МЕТОД (БЕЗ RANGE-BASED FOR)
-// ============================================================
+// ОСНОВНОЙ МЕТОД
 Mat Visualizer::draw(
         Mat& frame,
         const std::vector<Detection>& detections,
@@ -56,9 +52,8 @@ Mat Visualizer::draw(
     return frame;
 }
 
-// ============================================================
+
 // РИСОВАНИЕ ОДНОГО ОБЪЕКТА
-// ============================================================
 void Visualizer::drawDetection(
         Mat& frame,
         const Detection& det
@@ -105,9 +100,8 @@ void Visualizer::drawDetection(
     }
 }
 
-// ============================================================
 // ИНФОРМАЦИОННАЯ ПАНЕЛЬ
-// ============================================================
+
 void Visualizer::drawInfoPanel(
         Mat& frame,
         double fps,
@@ -125,19 +119,17 @@ void Visualizer::drawInfoPanel(
     if (showObjectCount) panelHeight += lineHeight;
     panelHeight += 10;
 
-    rectangle(
-            frame,
-            Point(x - 5, startY - 20),
-            Point(x + panelWidth, startY + panelHeight),
-            Scalar(0, 0, 0),
-            FILLED
-    );
+    // Проверяем границы, чтобы не уйти за пределы разрешения кадра
+    int endX = cv::min(x + panelWidth, frame.cols - 1);
+    int endY = cv::min(startY - 20 + panelHeight, frame.rows - 1);
 
+    // Оставляем ТОЛЬКО ОДИН прямоугольник. Используем полупрозрачный темный фон.
+    // Если хотите глухой серый, оставьте Scalar(50, 50, 50)
     rectangle(
             frame,
             Point(x - 5, startY - 20),
-            Point(x + panelWidth, startY + panelHeight),
-            Scalar(50, 50, 50),
+            Point(endX, endY),
+            Scalar(30, 30, 30),
             FILLED
     );
 

@@ -7,16 +7,6 @@
 #include "detector.hpp"
 
 class Visualizer final {
-private:
-    cv::Scalar boxColor;
-    int boxThickness;
-    double fontSize;
-    int fontThickness;
-
-    bool showConfidence;
-    bool showClassNames;
-    bool showFPS;
-    bool showObjectCount;
 
 public:
     Visualizer(
@@ -54,4 +44,16 @@ public:
     void setShowClassNames(bool show) { showClassNames = show; }
     void setShowFPS(bool show) { showFPS = show; }
     void setShowObjectCount(bool show) { showObjectCount = show; }
+
+private:
+    cv::Scalar boxColor;
+    int boxThickness;
+    double fontSize;
+    int fontThickness;
+
+    bool showConfidence;
+    bool showClassNames;
+    bool showFPS;
+    bool showObjectCount;
+
 };

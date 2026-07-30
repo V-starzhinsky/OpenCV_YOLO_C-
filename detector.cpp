@@ -1,333 +1,217 @@
-#include "detector.hpp"
+#define __builtin_verbose_trap(category, reason) ((void)0)
+#define NOMINMAX // Запрещает Windows ломать функции min и max
 
-#include <opencv2/opencv.hpp>
-#include <string>
+#include "include/detector.hpp"
+#include <fstream>
+#include <iostream>
+#include <cmath>
 
-#include <iostream>     // Для cout, cerr
+Detector::Detector() : env(ORT_LOGGING_LEVEL_WARNING, "YOLOv4-Tiny-DML") {
+    // 1. Загружаем имена классов COCO
+    loadClassNames("C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/coco.names");
 
+    // 2. Настраиваем опции сессии и включаем аппаратное ускорение DirectML (AMD Radeon)
+    Ort::SessionOptions sessionOptions;
+    sessionOptions.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
 
+    // 0 — индекс видеокарты AMD в системе. Подключаем DirectML.
+    Ort::Status status(OrtSessionOptionsAppendExecutionProvider_DML(sessionOptions, 0));
 
-using namespace cv::dnn;
-
-
-// Конструктор
-
-Detector::Detector(
-        const std::string& configPath,
-        const std::string& weightsPath,
-        const std::string& classesPath,
-        float confThreshold,
-        float nmsThreshold,
-        int width,
-        int height
-)
-        : confidenceThreshold(confThreshold),
-          nmsThreshold(nmsThreshold),
-          inputWidth(width),
-          inputHeight(height),
-          scaleFactor(1.0f / 255.0f),   // Нормализация: 0-255 → 0-1
-          meanValue(0, 0, 0),           // Не вычитаем среднее
-          swapRB(false)                  // BGR → RGB (YOLO ожидает RGB)
-{
-
-    // Загрука списка классов
-
-    loadClasses(classesPath);
-    std::cout << "[Detector] Loaded " << classes.size() << " classes from " << classesPath << std::endl;
-
-
-    // ШАГ 2: ЗАГРУЗКА НЕЙРОСЕТИ
-
-    try {
-        // readNetFromDarknet - загружает YOLO модель
-        //   configPath  - архитектура сети (yolov4-tiny.cfg)
-        //   weightsPath - обученные веса (yolov4-tiny.weights)
-        net = readNetFromDarknet(configPath, weightsPath);
-
-        // Настройка бэкенда
-        //   DNN_BACKEND_OPENCV - использует OpenCV (CPU)
-        //   DNN_BACKEND_CUDA   - использует CUDA (GPU)
-        net.setPreferableBackend(DNN_BACKEND_OPENCV);
-        net.setPreferableTarget(DNN_TARGET_CPU);
-
-        std::cout << "[Detector] Model loaded successfully" << std::endl;
-        std::cout << "[Detector] Input size: " << inputWidth  << "x" << inputHeight << std::endl;
-        std::cout << "[Detector] Confidence threshold: " << confidenceThreshold << std::endl;
-        std::cout << "[Detector] NMS threshold: " << nmsThreshold << std::endl;
-
-    } catch (const cv::Exception& e) {
-        std::cerr << "[Detector] ERROR: Failed to load model!" << std::endl;
-        std::cerr << "[Detector] " << e.what() << std::endl;
-        throw;  // Пробрасываем исключение
+    // Проверяем успешность подключения DirectML
+    if (!status.IsOK()) {
+        std::cerr << "[Detector] Ошибка подключения DirectML! Откат на CPU. Сообщение: "
+                  << status.GetErrorMessage() << std::endl;
+    } else {
+        std::cout << "[Detector] Аппаратное ускорение DirectML успешно подключено." << std::endl;
     }
+
+    // 3. Загружаем саму модель ONNX
+    std::wstring modelPath = L"C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/yolov4-tiny.onnx";
+    session = std::make_unique<Ort::Session>(env, modelPath.c_str(), sessionOptions);
+
+    // Точные имена входных и выходных слоев вашей модели (сохраняются как std::string)
+    inputNames = { "input_1" };
+    outputNames = { "conv2d_17", "conv2d_20" };
+
+    std::cout << "[Detector] Модель ONNX успешно загружена через DirectML на GPU!" << std::endl;
 }
 
-
-// ЗАГРУЗКА СПИСКА КЛАССОВ
-
-void Detector::loadClasses(const std::string& classesPath) {
-    std::ifstream file(classesPath);
-
-    if (!file.is_open()) {
-        std::cerr << "[Detector] ERROR: Cannot open classes file: " << classesPath << std::endl;
-        return;
+void Detector::loadClassNames(const std::string& path) {
+    std::ifstream ifs(path);
+    std::string line;
+    while (std::getline(ifs, line)) {
+        if (!line.empty()) classes.push_back(line);
     }
-
-    std::string className;
-    while (getline(file, className)) {
-        // Удаляем символ возврата каретки (для Windows)
-        if (!className.empty() && className.back() == '\r') {
-            className.pop_back();
-        }
-        classes.push_back(className);
-    }
-
-    file.close();
-
 }
-
-
-// ПРИМЕНЕНИЕ NMS
-
-std::vector<Detection> Detector::applyNMS(
-        const std::vector<cv::Rect_<int>>& boxes,
-        const std::vector<float>& confidences,
-        const std::vector<int>& classIds
-) {
-    std::vector<Detection> detections;
-
-
-    // ЗАПУСК NMS
-
-    // NMSBoxes - встроенная функция OpenCV
-    // Параметры:
-    //   boxes        - все прямоугольники
-    //   confidences  - уверенность для каждого
-    //   score_threshold - минимальная уверенность
-    //   nms_threshold   - порог пересечения (IoU)
-    //   indices      - выходные индексы оставленных рамок
-
-    std::vector<int> indices;
-    NMSBoxes(boxes, confidences, confidenceThreshold, nmsThreshold, indices);
-
-
-    // ФОРМИРОВАНИЕ ВЕКТОРА DETECTION
-
-    for (size_t i = 0; i < indices.size(); ++i) {
-        int idx = indices[i];
-
-        Detection det;
-        det.bbox = boxes[idx];
-        det.confidence = confidences[idx];
-        det.classId = classIds[idx];
-        det.className = classes[det.classId];
-
-        detections.push_back(det);
-    }
-
-    return detections;
-}
-
-// ОСНОВНОЙ МЕТОД ДЕТЕКЦИИ
 
 std::vector<Detection> Detector::detect(const cv::Mat& input) {
+    if (input.empty()) return {};
 
-    // ПРОВЕРКА ВХОДНЫХ ДАННЫХ
+    int originalWidth = input.cols;
+    int originalHeight = input.rows;
 
-    if (input.empty()) {
-        std::cerr << "[Detector] ERROR: Empty input image!" << std::endl;
-        return std::vector<Detection>();
-    }
+    // 1. Препроцессинг через OpenCV (YOLO требует нормализацию 1/255 и RGB)
+    cv::Mat blob = cv::dnn::blobFromImage(input, 1.0 / 255.0, cv::Size(inputWidth, inputHeight), cv::Scalar(), true, false);
 
+    std::vector<float> inputData;
+    inputData.assign(blob.ptr<float>(), blob.ptr<float>() + blob.total());
 
-    // ДИАГНОСТИКА: РАЗМЕР И ТИП ВХОДА
+    // 2. Создаем структуру памяти тензора для ONNX Runtime
+    std::vector<int64_t> inputDims = {1, 3, inputHeight, inputWidth};
+    auto memoryInfo = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
 
-  //  std::cout << "[Detector] Input: " << input.cols << "x" << input.rows
-      //        << ", channels: " << input.channels()
-      //        << ", type: " << input.type() << std::endl;
-
-
-    // СОЗДАНИЕ BLOB
-
-    cv::Mat blob = blobFromImage(
-            input,
-            scaleFactor,
-            cv::Size(inputWidth, inputHeight),
-            meanValue,
-            false,
-            false
+    Ort::Value inputTensor = Ort::Value::CreateTensor<float>(
+            memoryInfo,
+            inputData.data(),
+            inputData.size(),
+            inputDims.data(),
+            inputDims.size()
     );
 
-  //  std::cout << "[Detector] Blob created: " << blob.size[2] << "x" << blob.size[3]
-     //         << ", channels: " << blob.size[1] << std::endl;
+    size_t numOutputs = session->GetOutputCount();
 
-
-    // ЗАПУСК НЕЙРОСЕТИ
-
-    net.setInput(blob);
-
-    std::vector<std::string> outputNames = net.getUnconnectedOutLayersNames();
-   // std::cout << "[Detector] Output layers: " << outputNames.size() << std::endl;
-    for (size_t i = 0; i < outputNames.size(); ++i) {
-        std::cout << "  - " << outputNames[i] << std::endl;
+    // Безопасно преобразуем векторы строк во временные массивы указателей const char* для API ONNX Runtime
+    std::vector<const char*> inputNamesPtr;
+    for (const auto& name : inputNames) {
+        inputNamesPtr.push_back(name.c_str());
     }
 
-    std::vector<cv::Mat> outputs;
+    std::vector<const char*> outputNamesPtr;
+    for (const auto& name : outputNames) {
+        outputNamesPtr.push_back(name.c_str());
+    }
+
+    // Создаем вектор пустых Ort::Value (аллокацию памяти под выходы берет на себя ONNX Runtime)
+    std::vector<Ort::Value> outputTensors;
+    for (size_t i = 0; i < numOutputs; ++i) {
+        outputTensors.push_back(Ort::Value{nullptr});
+    }
+
+    // 3. Запускаем инференс
     try {
-        net.forward(outputs, outputNames);
-
-       // std::cout << "[Detector] Forward pass completed, outputs: " << outputs.size() << std::endl;
-    } catch (const cv::Exception &e) {
-        std::cerr << "[Detector] ERROR in forward pass: " << e.what() << std::endl;
-        return std::vector<Detection>();
+        session->Run(
+                Ort::RunOptions{nullptr},
+                inputNamesPtr.data(), &inputTensor, 1,
+                outputNamesPtr.data(), outputTensors.data(), numOutputs
+        );
+    } catch (const std::exception& e) {
+        std::cerr << "[Detector] Ошибка во время выполнения Run(): " << e.what() << std::endl;
+        return {};
     }
 
-
-    //  ПРОВЕРКА ВЫХОДНЫХ ДАННЫХ
-
-    int totalDetections = 0;
-    for (size_t i = 0; i < outputs.size(); ++i) {
-        totalDetections += outputs[i].rows;
-      //  std::cout << "[Detector] Output " << i << ": rows=" << outputs[i].rows
-      //            << ", cols=" << outputs[i].cols << std::endl;
-    }
-   // std::cout << "[Detector] Total raw detections: " << totalDetections << std::endl;
-
-    if (totalDetections == 0) {
-        std::cout << "[Detector] No detections from neural network!" << std::endl;
-        return std::vector<Detection>();
-    }
-
-
-    // ИЗВЛЕЧЕНИЕ РЕЗУЛЬТАТОВ
-
+    // 4. Постпроцессинг (разбор геометрии под формат NCHW [1, 255, H, W])
     std::vector<cv::Rect> boxes;
     std::vector<float> confidences;
     std::vector<int> classIds;
 
-    int originalWidth = input.cols;
-    int originalHeight = input.rows;
-    float xScale = (float) originalWidth / inputWidth;
-    float yScale = (float) originalHeight / inputHeight;
+    const int numAnchorsPerLayer = 3;
+    const int numClasses = 80;
+    const int elementsPerAnchor = 5 + numClasses; // 85
 
-   // std::cout << "[Detector] Scale: x=" << xScale << ", y=" << yScale << std::endl;
+    // Стандартные анкоры для YOLOv4-Tiny (базовые эталонные размеры коробок)
+    // Разделены на два выходных слоя по правилам архитектуры
+    const float anchors[2][3][2] = {
+            { {81, 82},  {135, 169}, {344, 319} },  // Для сетки 13x13 (conv2d_17)
+            { {10, 14},  {23, 27},   {37, 58} }     // Для сетки 26x26 (conv2d_20)
+    };
 
-    int filteredByConfidence = 0;
-    int filteredByClass = 0;
+    for (size_t t = 0; t < numOutputs; ++t) {
+        float* rawOutput = outputTensors[t].GetTensorMutableData<float>();
+        auto tensorInfo = outputTensors[t].GetTensorTypeAndShapeInfo();
+        auto outputShape = tensorInfo.GetShape();
 
-    for (size_t i = 0; i < outputs.size(); ++i) {
-        const cv::Mat &output = outputs[i];
+        int gridH = static_cast<int>(outputShape[2]); // 13 или 26
+        int gridW = static_cast<int>(outputShape[3]); // 13 или 26
+        int gridSize = gridH * gridW;
 
-        for (int j = 0; j < output.rows; ++j) {
-            float *data = (float *) output.ptr(j);
+        // Вычисляем шаг сетки относительно входного размера сети (416x416)
+        float strideX = static_cast<float>(inputWidth) / gridW;
+        float strideY = static_cast<float>(inputHeight) / gridH;
 
-            // 1. Сначала извлекаем скоры классов (индексы 5...84)
-            float *classScores = data + 5;
-            cv::Mat scores(1, output.cols - 5, CV_32FC1, classScores);
-            cv::Point classIdPoint;
-            double maxClassScore;
-            minMaxLoc(scores, 0, &maxClassScore, 0, &classIdPoint);
+        for (int a = 0; a < numAnchorsPerLayer; ++a) {
+            int anchorOffset = a * elementsPerAnchor;
 
-            // 2. Считаем НАСТОЯЩИЙ confidence по формуле YOLO: Objectness * ClassScore
-            float objectness = data[4];
-            float finalConfidence = objectness * (float) maxClassScore;
+            for (int q = 0; q < gridH; ++q) {
+                for (int p = 0; p < gridW; ++p) {
+                    int cellIndex = q * gridW + p;
 
-            /*/ ← ДИАГНОСТИКА
-            if (j < 5) {
-               std::cout << "[Detector] Sample " << j << ": final_conf=" << finalConfidence
-                         << " (obj=" << objectness << ", class_score=" << maxClassScore << ")" << std::endl;
-            }*/
+                    int objChannel = anchorOffset + 4;
+                    float objectness = rawOutput[objChannel * gridSize + cellIndex];
+                    objectness = 1.0f / (1.0f + std::exp(-objectness)); // Сигмоида
 
-            // Фильтруем один раз по правильному значению
-            if (finalConfidence < confidenceThreshold) {
-                filteredByConfidence++;
-                continue;
-            }
+                    if (objectness < confidenceThreshold) continue;
 
-            int classId = classIdPoint.x;
+                    // Поиск лучшего класса
+                    float maxClassScore = 0.0f;
+                    int classId = -1;
+                    for (int c = 0; c < numClasses; ++c) {
+                        int classChannel = anchorOffset + 5 + c;
+                        float score = rawOutput[classChannel * gridSize + cellIndex];
+                        score = 1.0f / (1.0f + std::exp(-score)); // Сигмоида
 
+                        if (score > maxClassScore) {
+                            maxClassScore = score;
+                            classId = c;
+                        }
+                    }
 
-         //   std::cout << "[DEBUG_COORDS] raw_cx: " << data[0] << ", raw_w: " << data[2] << " | orig_W: " << originalWidth << std::endl;
+                    float finalConfidence = objectness * maxClassScore;
 
-            // 1. Извлекаем нормализованные координаты (они от 0.0 до 1.0)
-            float norm_cx = data[0];
-            float norm_cy = data[1];
-            float norm_w  = data[2];
-            float norm_h  = data[3];
+                    if (finalConfidence > confidenceThreshold) {
+                        float raw_x = rawOutput[(anchorOffset + 0) * gridSize + cellIndex];
+                        float raw_y = rawOutput[(anchorOffset + 1) * gridSize + cellIndex];
+                        float raw_w = rawOutput[(anchorOffset + 2) * gridSize + cellIndex];
+                        float raw_h = rawOutput[(anchorOffset + 3) * gridSize + cellIndex];
 
-            // 2. Считаем левый верхний угол в относительных координатах
-            float norm_left = norm_cx - (norm_w / 2.0f);
-            float norm_top  = norm_cy - (norm_h / 2.0f);
+                        // Математически корректное восстановление центра бокса на входном разрешении 416x416
+                        float cx = (1.0f / (1.0f + std::exp(-raw_x)) + p) * strideX;
+                        float cy = (1.0f / (1.0f + std::exp(-raw_y)) + q) * strideY;
 
-            // 3. Умножаем на размер картинки, которую получил детектор
-            int real_x = static_cast<int>(norm_left * originalWidth);
-            int real_y = static_cast<int>(norm_top * originalHeight);
-            int real_w = static_cast<int>(norm_w * originalWidth);
-            int real_h = static_cast<int>(norm_h * originalHeight);
+                        // Восстановление размеров w и h с использованием логарифмических анкоров
+                        float anchorW = anchors[t][a][0];
+                        float anchorH = anchors[t][a][1];
+                        float nw = std::exp(raw_w) * anchorW;
+                        float nh = std::exp(raw_h) * anchorH;
 
-            // 4. Ограничиваем рамки в пределах кадра
-            cv::Rect box;
-            box.x = cv::max(0, cv::min(real_x, originalWidth - 1));
-            box.y = cv::max(0, cv::min(real_y, originalHeight - 1));
-            box.width = cv::max(1, cv::min(real_w, originalWidth - box.x));
-            box.height = cv::max(1, cv::min(real_h, originalHeight - box.y));
+                        // Перевод координат из масштаба нейросети (416) в масштаб экрана веб-камеры
+                        float scaleX = static_cast<float>(originalWidth) / inputWidth;
+                        float scaleY = static_cast<float>(originalHeight) / inputHeight;
 
-            boxes.push_back(box);
-            confidences.push_back(finalConfidence);
-            classIds.push_back(classId);
+                        int real_w = static_cast<int>(nw * scaleX);
+                        int real_h = static_cast<int>(nh * scaleY);
+                        int real_x = static_cast<int>((cx - nw / 2.0f) * scaleX);
+                        int real_y = static_cast<int>((cy - nh / 2.0f) * scaleY);
 
+                        cv::Rect box;
+                        box.x = cv::max(0, cv::min(real_x, originalWidth - 1));
+                        box.y = cv::max(0, cv::min(real_y, originalHeight - 1));
+                        box.width = cv::max(1, cv::min(real_w, originalWidth - box.x));
+                        box.height = cv::max(1, cv::min(real_h, originalHeight - box.y));
 
-        }
-
-            // std::cout << "[Detector] Filtered by confidence: " << filteredByConfidence << std::endl;
-            //   std::cout << "[Detector] Filtered by class score: " << filteredByClass << std::endl;
-            //  std::cout << "[Detector] Boxes before NMS: " << boxes.size() << std::endl;;
-        if (boxes.size() == 0) {
-       //     std::cout << "[Detector] No objects passed confidence threshold ("
-                  //    << confidenceThreshold << ")" << std::endl;
-            return std::vector<Detection>();
-        }
-
-
-        // NMS
-
-        std::vector<int> indices;
-        NMSBoxes(boxes, confidences, confidenceThreshold, nmsThreshold, indices);
-
-        std::cout << "[Detector] Boxes after NMS: " << indices.size() << std::endl;
-
-
-        // ФОРМИРОВАНИЕ РЕЗУЛЬТАТА
-        //
-        std::vector<Detection> detections;
-
-        for (size_t i = 0; i < indices.size(); ++i) {
-            int idx = indices[i];
-
-            Detection det;
-            det.bbox = boxes[idx];
-            det.confidence = confidences[idx];
-            det.classId = classIds[idx];
-
-            if (det.classId >= 0 && det.classId < (int) classes.size()) {
-                det.className = classes[det.classId];
-            } else {
-                det.className = "unknown";
-            }
-
-            detections.push_back(det);
-
-            //  ДИАГНОСТИКА: ПЕРВЫЕ НАЙДЕННЫЕ ОБЪЕКТЫ
-            if (i < 5) {
-                std::cout << "[Detector] Object " << i << ": " << det.className
-                          << " (" << det.confidence << ") at ["
-                          << det.bbox.x << "," << det.bbox.y << ","
-                          << det.bbox.width << "," << det.bbox.height << "]" << std::endl;
+                        boxes.push_back(box);
+                        confidences.push_back(finalConfidence);
+                        classIds.push_back(classId);
+                    }
+                }
             }
         }
-
-        std::cout << "[Detector] FINAL detections: " << detections.size() << std::endl;
-
-        return detections;
     }
+
+    // 5. Применяем NMS (Non-Maximum Suppression) для удаления дубликатов рамок
+    std::vector<int> indices;
+    cv::dnn::NMSBoxes(boxes, confidences, confidenceThreshold, nmsThreshold, indices);
+
+    // 6. Формируем финальный вектор детекций с исправленными индексами NMS
+    std::vector<Detection> detections;
+    for (size_t i = 0; i < indices.size(); ++i) {
+        int idx = indices[i];
+        Detection det;
+        det.bbox = boxes[idx];
+        det.confidence = confidences[idx];
+        det.classId = classIds[idx];
+        det.className = (det.classId >= 0 && det.classId < (int)classes.size()) ? classes[det.classId] : "unknown";
+        detections.push_back(det);
+    }
+
+    return detections;
 }

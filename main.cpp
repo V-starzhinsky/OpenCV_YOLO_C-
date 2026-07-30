@@ -1,8 +1,13 @@
+
 #include <iostream>
-#include <opencv4/opencv2/opencv.hpp>
-#include "Preprocessor.hpp"
+#include <opencv2/opencv.hpp>
+#include <windows.h>
+
 #include "detector.hpp"
 #include "visualizer.hpp"
+#include "Preprocessor.hpp"
+#include "FpsCounter.hpp"
+#include "VideoStreamer.hpp"
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
@@ -10,31 +15,21 @@
 using namespace cv;
 using namespace std;
 
-int main() {
+//Пути к модели
+std::string  modelPath = TOSTRING(MODEL_PATH);
+std::string configPath = modelPath + "/yolov4-tiny.cfg";
+std::string weightsPath = modelPath + "/yolov4-tiny.weights";
+std::string classesPath = modelPath + "/coco.names";
 
-    //Пути к модели
-    string  modelPath = TOSTRING(MODEL_PATH);
-    string configPath = modelPath + "/yolov4-tiny.cfg";
-    string weightsPath = modelPath + "/yolov4-tiny.weights";
-    string classesPath = modelPath + "/coco.names";
 
-    //===================================================
+// глобальная инициализация компонентов чтобы call-back функция имела к ним доступ
+Detector& getDetector() {
+    static Detector detector; // Инициализируется только при первом вызове функции
+    return detector;
+}
 
-    //Создание модулей
-    //Загрузка детектора
-    Detector detector(configPath, weightsPath, classesPath,
-                      0.2,0.4,416,416);
-
-    /*/Загрузка Препроцессора (размер = размеру входа детектора)
-    Preprocessor preprocessor(detector.getInputSize(),
-                              true,             //CLAHE
-                              false,        //Blur
-                              5,               //Размер зерна
-                              1.5,        // Сигма
-                              true);       // Input is BGR флаг */
-
-    //Загрузка Визуализатора
-    Visualizer visualizer(
+Visualizer& getVisualizer() {
+    static Visualizer visualizer(
             Scalar(0, 255, 0),
             2,
             0.5,
@@ -44,125 +39,63 @@ int main() {
             true,
             true
     );
+    return visualizer;
+}
 
-   //preprocessor.printParams();
+FpsCounter& getFpsCounter() {
+    static FpsCounter fpsCounter;
+    return fpsCounter;
+}
+// streamer вызывает эту функцию на каждый кадр
+void processFrame(const cv::Mat& frame){
+    if (frame.empty()) return;
 
-    //=====================================================
+    // Делаем глубокую копию кадра в CPU память
+    cv::Mat CPU_frame;
+    frame.copyTo(CPU_frame);
 
-    const char windowName[] = "Detection";
+    // Отправляем изолированный кадр в нейросеть
+    std::vector<Detection> detections = getDetector().detect(CPU_frame);
 
-    // Открытие камеры с проверкой
-    VideoCapture inVid(0);
-    if(!inVid.isOpened()){
-        cerr << "Error! Camera is not ready! \n " << endl;
+    // Сигнализируем счетчику FPS, что обработан еще один кадр
+    getFpsCounter().tick();
+
+    // Создаем копию кадра для отрисовки интерфейса
+    cv::Mat displayFrame = CPU_frame.clone();
+
+    // Извлекаем посчитанный FPS из объекта счетчика
+    double currentFpsValue = getFpsCounter().getValue(); // Или getFpsCounter().getFpsValue(), проверьте имя геттера в вашем hpp
+
+    // Передаем значение FPS третьим аргументом в визуализатор
+    getVisualizer().draw(displayFrame, detections, currentFpsValue);
+
+
+    // Вывод на экран
+    cv::imshow("YOLOv4 Vulkan Aplication", displayFrame);
+}
+
+// ================================================================================
+
+
+int main(){
+
+    // Принудительно переключаем вывод консоли в UTF-8
+    SetConsoleOutputCP(CP_UTF8);
+
+    std::cout << "[Main] Инициализация модулей программы..." << std::endl;
+
+
+    VideoStreamer streamer;
+    if(!streamer.open(0)){
+        std::cerr << "[Main] WARNING! CRITICAL ERROR: WEB-cam not founf!" << std::endl;
         return -1;
     }
 
-    // Получение параметров камеры
-    int width = (int)inVid.get(CAP_PROP_FRAME_WIDTH);
-    int height = (int)inVid.get(CAP_PROP_FRAME_HEIGHT);
-    double fps = inVid.get(CAP_PROP_FPS);
-    if(fps <= 0 ) fps = 30;
+    std::cout << "[Main] Camera succesfull opened.Pass the processing function.." << std::endl;
 
-    cout << "Camera: " << width << "x" << height << " @ " << fps << " FPS" << endl;
+    // Запускаем бесконечный цикл захвата
+    streamer.startCaptureLoop(processFrame);
 
-    //=========================================================
-
-    // Настройка окна
-    namedWindow(windowName, WINDOW_NORMAL); // WINDOW_NORMAL позволяет менять размер окна мышкой
-    moveWindow(windowName, 500, 200);
-
-
-    //==========================================================
-
-    // Переменные
-    Mat videoFrame;
-    Mat processedFrame;
-    Mat displayFrame;
-    vector<Detection> detections;
-
-
-    int frameCount = 0;
-    bool paused = false;
-    double currentFPS = 0;
-    auto lastFpsUpdate = chrono::steady_clock::now();
-    int fpsFrameCount = 0;
-
-    //===========================================================
-
-    // Основной цикл
-    while(true){
-
-        // Захват кадра
-        inVid >> videoFrame;
-        if(videoFrame.empty()){
-            cerr << "Empty frame captured, skipping.." << endl;
-            waitKey(10);
-            continue;
-        }
-
-
-        //Препроцессинг ( Обработка кадра)
-        //Измеряем время обработки
-        auto start = chrono::steady_clock::now();
-        processedFrame = videoFrame;
-        // processedFrame = preprocessor.process(videoFrame);
-        auto end = chrono::steady_clock::now();
-        auto processingTime = chrono::duration_cast<chrono::milliseconds>
-                (end - start).count();
-
-        if(processedFrame.empty()){
-            cerr << "Error: Processing failed!" << endl;
-            continue;
-        }
-
-
-
-        //Детекция
-        auto detectStart = chrono::steady_clock::now();
-        detections = detector.detect(processedFrame);
-        auto detectEnd = chrono::steady_clock::now();
-        auto detectTime = chrono::duration_cast<chrono::milliseconds>
-                (detectEnd - detectStart).count();
-
-        //Рассчет FPS
-        fpsFrameCount++;
-        auto now = chrono::steady_clock::now();
-        auto elapsed = chrono::duration_cast<chrono::milliseconds>
-                (now - lastFpsUpdate).count();
-        if(elapsed >= 1000){
-            currentFPS = fpsFrameCount * 1000.0 / elapsed;
-            fpsFrameCount = 0;
-            lastFpsUpdate = now;
-        }
-
-        //Визуализация
-        //Копируем оригинальный кадр
-        displayFrame = videoFrame.clone();
-        //Рисуем объекты
-        visualizer.draw(displayFrame,detections, currentFPS);
-
-
-        // Статистика
-        frameCount++;
-        if (frameCount % 30 == 0) {
-            cout << "Frame " << frameCount
-                 << " | FPS: " << (int)currentFPS
-                 //<< " | Preproc: " << processingTime << " ms"
-                 << " | Detect: " << detectTime << " ms"
-                 << " | Objects: " << detections.size() << endl;
-        }
-        //Отображение
-        imshow(windowName,displayFrame);
-
-
-        if (waitKey(1000/fps) >= 0) break;
-    }
-    inVid.release();
-    destroyAllWindows();
-
-    cout << "\nTotal frames processed: " << frameCount << endl;
-    cout << "Program finished." << endl;
-
+    std::cout << "[Main] Programm is succesfull finish work" << std::endl;
     return 0;
 }

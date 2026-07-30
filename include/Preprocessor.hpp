@@ -7,15 +7,6 @@
  */
 
 class Preprocessor final{
-private:
-    cv::Size targetSize; //целевой размер
-    bool useCLAHE;  //адаптивное выравнивание
-    bool useGaussianBlur; //применять ли размытие?
-    int gaussianKernelSize; //размер ядра размытия
-    double gaussianSigma; // сигма для размытия
-    bool inputIsBGR; // true = камера в BGR, false = уже RGB
-
-    cv::Ptr<cv::CLAHE> clahe;  //объект для хранения состояния инициализации CLAHE
 public:
     Preprocessor(
             cv::Size target = cv::Size(416, 416),
@@ -42,5 +33,14 @@ public:
     // Информационный метод
     void printParams() const; // Вывод текущих параметров обработки
 
+private:
+    cv::Size targetSize; //целевой размер
+    bool useCLAHE;  //адаптивное выравнивание
+    bool useGaussianBlur; //применять ли размытие?
+    int gaussianKernelSize; //размер ядра размытия
+    double gaussianSigma; // сигма для размытия
+    bool inputIsBGR; // true = камера в BGR, false = уже RGB
+
+    cv::Ptr<cv::CLAHE> clahe;  //объект для хранения состояния инициализации CLAHE
 
 };

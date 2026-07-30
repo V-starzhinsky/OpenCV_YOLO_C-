@@ -1,54 +1,36 @@
-// Detector.hpp
 #pragma once
-#include <opencv2/core.hpp>
+// 1. Сначала подключаем базовый C API
+#include <onnxruntime_c_api.h>
 
-#include <vector>
-#include <string>
-#include <fstream>
-#
-#include <opencv2/dnn.hpp>
-#include <opencv2/imgproc.hpp>
+#include <onnxruntime_cxx_api.h> // Заголовок ONNX Runtime C++
+#include <dml_provider_factory.h> // Заголовок DirectML для AMD Radeon
 
 #include "types.hpp"
+#include <opencv2/opencv.hpp>
+#include <vector>
+#include <string>
 
-class Detector final {
-private:
-    cv::dnn::Net net;
-    std::vector<std::string> classes;
-
-    float confidenceThreshold;
-    float nmsThreshold;
-    int inputWidth;
-    int inputHeight;
-    float scaleFactor;
-    cv::Scalar meanValue;
-    bool swapRB;
-
-    void loadClasses(const std::string& classesPath);
-    std::vector<Detection> applyNMS(
-            const std::vector<cv::Rect>& boxes,
-            const std::vector<float>& confidences,
-            const std::vector<int>& classIds
-    );
-
+class Detector {
 public:
-    Detector(
-            const std::string& configPath,
-            const std::string& weightsPath,
-            const std::string& classesPath,
-            float confThreshold = 0.5,
-            float nmsThreshold = 0.4,
-            int width = 416,
-            int height = 416
-    );
-
+    Detector();
     std::vector<Detection> detect(const cv::Mat& input);
 
-    void setConfidenceThreshold(float threshold) { confidenceThreshold = threshold; }
-    void setNMSThreshold(float threshold) { nmsThreshold = threshold; }
-    float getConfidenceThreshold() const { return confidenceThreshold; }
-    float getNMSThreshold() const { return nmsThreshold; }
-    cv::Size getInputSize() const { return cv::Size(inputWidth, inputHeight); }
+private:
+    // Объекты окружения и сессии ONNX Runtime
+    Ort::Env env;
+    std::unique_ptr<Ort::Session> session;
 
+    // Параметры модели
+    int inputWidth = 416;
+    int inputHeight = 416;
+    float confidenceThreshold = 0.25f;
+    float nmsThreshold = 0.4f;
 
+    std::vector<std::string> classes;
+
+    // ИСПРАВЛЕНО: Используем std::string для безопасного хранения строк
+    std::vector<std::string> inputNames;
+    std::vector<std::string> outputNames;
+
+    void loadClassNames(const std::string& path);
 };
