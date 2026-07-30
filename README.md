@@ -1,79 +1,40 @@
-# 🚀 OpenCV YOLOv4-Tiny CUDA Object Detection
+# OpenCV YOLOv4-Tiny Object Detection (ONNX Runtime + DirectML)
 
-[![C++ Standard](https://shields.io)](https://cppreference.com)
-[![OpenCV Version](https://shields.io)](https://opencv.org)
-[![CUDA Speedup](https://shields.io)](https://nvidia.com)
+Версия приложения, использующая **ONNX Runtime C++ API** и аппаратное ускорение **DirectML** для детекции объектов в реальном времени с помощью модели YOLOv4-Tiny на видеокартах AMD Radeon (а также Intel/NVIDIA).
 
-Приложение на C++ для распознавания 80 классов объектов в реальном времени с использованием архитектуры **YOLOv4-tiny** и модуля **OpenCV DNN**. Проект разработан в среде **CLion** .
+## Технологический стек
+* **Язык:** C++17
+* **Инференс:** ONNX Runtime (с поддержкой DirectML Execution Provider)
+* **Захват и визуализация видео:** OpenCV 4.10 (MSMF / DirectShow)
+* **Аппаратное ускорение:** DirectML (оптимизировано для AMD Radeon RX 560 / Vega)
 
----
+## Структура выходных слоев модели
+Парсер в данной ветке разработан под формат памяти **Channels-First (NCHW)** со следующими параметрами выходов:
+* `input_1`: Входной тензор изображения `[1, 3, 416, 416]`
+* `conv2d_17`: Выходной тензор первого масштаба `[1, 255, 13, 13]`
+* `conv2d_20`: Выходной тензор второго масштаба `[1, 255, 26, 26]`
 
-## ✨ Особенности / Features
-* 📦 **YOLOv4-Tiny:** .
-* 🛠️ **OpenCV DNN:** реализация детекции на C++ .
+## Предварительные требования (Зависимости)
+1. **OpenCV 4.10** (скомпилированная под Visual Studio vc16). Путь по умолчанию: `C:/libs/opencv`
+2. **ONNX Runtime с поддержкой DirectML** (версия x64). Путь по умолчанию: `C:/libs/onnxruntime-dml`
+3. Файлы модели `yolov4-tiny.onnx` и `coco.names` должны находиться в папке `model/` в корне проекта.
 
+## Настройка высокой производительности в Windows
+Для того чтобы инференс гарантированно выполнялся на дискретной видеокарте (например, **Radeon RX 560**), а не на встроенном графическом ядре CPU (Vega), необходимо принудительно назначить приложению профиль производительности в ОС:
+1. Откройте *Параметры Windows -> Система -> Дисплей -> Графика*.
+2. Нажмите кнопку **Обзор** и выберите ваш скомпилированный файл `OpenCV_YOLO_CUDA.exe`.
+3. В параметрах выберите **"Высокая производительность"** (ваша дискретная видеокарта).
 
+## Сборка проекта (CMake)
+Проект конфигурируется и собирается стандартным образом через CMake (проверено в CLion / MSVC 2019+):
 
----
-
-## 🛠️ Требования и Зависимости
-Для сборки проекта вам понадобятся:
-1. **Компилятор:** С поддержкой стандарта C++17 (MSVC, GCC или Clang).
-2. **Сборщик:** CMake 3.10 или выше.
-3. **Библиотека:** OpenCV 4.13.0 (для поддержки CUDA требуется ручная сборка из исходников).
-
----
-
-## 🚀 Быстрый запуск
-
-### 1. Клонирование репозитория
 ```bash
-git clone https://github.com
-cd OpenCV_YOLO_CUDA
+mkdir build && cd build
+cmake ..
+cmake --build . --config Debug
 ```
 
-### 2. Загрузка весов нейросети
-Файлы весов (`.weights`) имеют большой размер и исключены из Git. Скачайте их вручную и положите в папку `model/`:
-* 📥 [yolov4-tiny.weights](https://github.com)
-* Файлы `yolov4-tiny.cfg` и `coco.names` уже находятся в папке `model/`.
-
-### 3. Настройка CLion
-1. Откройте проект в CLion.
-2. Перейдите в `Run -> Edit Configurations...`.
-3. В поле **Working directory** обязательно укажите корневую папку проекта (где лежит `CMakeLists.txt`), иначе модель не сможет найти файлы конфигурации.
-
----
-
-### Режим CPU (По умолчанию)
-```cpp
-net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
-net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
-```
-
-### Режим OpenCL (Базовое GPU ускорение)
-```cpp
-net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
-net.setPreferableTarget(cv::dnn::DNN_TARGET_OPENCL_FP16);
-```
-
-### Режим NVIDIA CUDA (Максимальный FPS)
-> ⚠️ *Требует OpenCV, скомпилированную с флагами `WITH_CUDA` и `WITH_CUDNN`.*
-```cpp
-net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
-net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
-```
-
----
-
-## 📁 Структура проекта
-```text
-├── include/            # Заголовочные файлы (.h)
-├── src/                # Исходный код (.cpp)
-│   ├── main.cpp        # Точка входа, захват видеопотока
-│   └── detector.cpp    # Логика инференса YOLO и фильтрация NMS
-├── model/              # Конфигурация модели
-│   ├── coco.names      # Список из 80 классов
-│   └── yolov4-tiny.cfg # Архитектура сети
-├── CMakeLists.txt      # Сценарий сборки CMake
-└── .gitignore          # Исключение временных файлов и весов из Git
-```
+## Переключение между версиями проекта
+Данный репозиторий разбит на ветки для демонстрации разных подходов к инференсу YOLOv4-Tiny:
+* Ветка `main` — Классический инференс через OpenCV DNN и файлы `.weights` / `.cfg`.
+* Ветка `onnx` — Высокопроизводительный инференс на GPU через ONNX Runtime и DirectML (Текущая ветка).
