@@ -16,8 +16,8 @@ public:
             int fontThickness = 2,
             bool showConf = true,
             bool showClass = true,
-            bool showFPS = true,
-            bool showCount = true
+            bool showFPS = false,
+            bool showCount = false
     );
 
     cv::Mat draw(

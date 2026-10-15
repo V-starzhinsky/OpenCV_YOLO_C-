@@ -21,8 +21,8 @@ private:
     std::unique_ptr<Ort::Session> session;
 
     // Параметры модели
-    int inputWidth = 416;
-    int inputHeight = 416;
+    int inputWidth = 320;
+    int inputHeight = 320;
     float confidenceThreshold = 0.25f;
     float nmsThreshold = 0.4f;
 

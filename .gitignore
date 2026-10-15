@@ -2,6 +2,8 @@
 cmake-build-debug/
 cmake-build-release/
 /build/
+pcb_train_pic/
+pcb_train_res/
 
 # Настройки среды разработки CLion
 .idea/
@@ -9,6 +11,7 @@ cmake-build-release/
 # бинарные файлы моделей (Их нельзя пушить на Git!)
 *.weights
 *.onnx
+*.jpg
 
 # Системные файлы
 Thumbs.db

@@ -1,4 +1,3 @@
-#define __builtin_verbose_trap(category, reason) ((void)0)
 #define NOMINMAX // Запрещает Windows ломать функции min и max
 
 #include "include/detector.hpp"
@@ -6,37 +5,40 @@
 #include <iostream>
 #include <cmath>
 
-Detector::Detector() : env(ORT_LOGGING_LEVEL_WARNING, "YOLOv4-Tiny-DML") {
-    // 1. Загружаем имена классов COCO
-    loadClassNames("C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/coco.names");
+Detector::Detector() : env(ORT_LOGGING_LEVEL_WARNING, "YOLOv11-DirectML") {
+    // 1. Имена классов (теперь у нас 9 классов дефектов вместо 80 классов COCO)
+    // Укажите путь к новому текстовому файлу, где построчно записаны ваши дефекты Short, Open и т.д.
+    loadClassNames("C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/pcb_classes.txt");
 
-    // 2. Настраиваем опции сессии и включаем аппаратное ускорение DirectML (AMD Radeon)
+    // 2. Настраиваем опции сессии и DirectML для работы на видеокарте AMD
     Ort::SessionOptions sessionOptions;
     sessionOptions.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
 
-    // 0 — индекс видеокарты AMD в системе. Подключаем DirectML.
     Ort::Status status(OrtSessionOptionsAppendExecutionProvider_DML(sessionOptions, 0));
-
-    // Проверяем успешность подключения DirectML
     if (!status.IsOK()) {
         std::cerr << "[Detector] Ошибка подключения DirectML! Откат на CPU. Сообщение: "
                   << status.GetErrorMessage() << std::endl;
     } else {
-        std::cout << "[Detector] Аппаратное ускорение DirectML успешно подключено." << std::endl;
+        std::cout << "[Detector] Аппаратное ускорение DirectML (AMD GPU) подключено." << std::endl;
     }
 
-    // 3. Загружаем саму модель ONNX
-    std::wstring modelPath = L"C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/yolov4-tiny.onnx";
+    // 3. Загружаем вашу новую модель YOLOv11 ONNX (которую мы экспортировали с imgsz=320)
+    std::wstring modelPath = L"C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/best.onnx";
     session = std::make_unique<Ort::Session>(env, modelPath.c_str(), sessionOptions);
 
-    // Точные имена входных и выходных слоев вашей модели (сохраняются как std::string)
-    inputNames = { "input_1" };
-    outputNames = { "conv2d_17", "conv2d_20" };
+    // ВАЖНО: В YOLOv11 имя входного слоя стандартное, а выходной слой ВСЕГО ОДИН.
+    inputNames = { "images" };
+    outputNames = { "output0" };
 
-    std::cout << "[Detector] Модель ONNX успешно загружена через DirectML на GPU!" << std::endl;
+    // Убедитесь, что эти константы объявлены в вашем detector.hpp:
+    inputWidth = 320;   // Меняем 416 на 320 под наше обучение
+    inputHeight = 320;
+
+    std::cout << "[Detector] Модель YOLOv11 ONNX успешно загружена!" << std::endl;
 }
 
 void Detector::loadClassNames(const std::string& path) {
+    classes.clear();
     std::ifstream ifs(path);
     std::string line;
     while (std::getline(ifs, line)) {
@@ -50,13 +52,13 @@ std::vector<Detection> Detector::detect(const cv::Mat& input) {
     int originalWidth = input.cols;
     int originalHeight = input.rows;
 
-    // 1. Препроцессинг через OpenCV (YOLO требует нормализацию 1/255 и RGB)
+    // 1. Препроцессинг через OpenCV (YOLOv11 требует нормализацию 1/255 и формат RGB (swapRB=true))
     cv::Mat blob = cv::dnn::blobFromImage(input, 1.0 / 255.0, cv::Size(inputWidth, inputHeight), cv::Scalar(), true, false);
 
     std::vector<float> inputData;
     inputData.assign(blob.ptr<float>(), blob.ptr<float>() + blob.total());
 
-    // 2. Создаем структуру памяти тензора для ONNX Runtime
+    // 2. Создаем структуру тензора для ONNX Runtime
     std::vector<int64_t> inputDims = {1, 3, inputHeight, inputWidth};
     auto memoryInfo = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
 
@@ -68,140 +70,98 @@ std::vector<Detection> Detector::detect(const cv::Mat& input) {
             inputDims.size()
     );
 
-    size_t numOutputs = session->GetOutputCount();
+    std::vector<const char*> inputNamesPtr = { inputNames[0].c_str() };
+    std::vector<const char*> outputNamesPtr = { outputNames[0].c_str() };
 
-    // Безопасно преобразуем векторы строк во временные массивы указателей const char* для API ONNX Runtime
-    std::vector<const char*> inputNamesPtr;
-    for (const auto& name : inputNames) {
-        inputNamesPtr.push_back(name.c_str());
-    }
-
-    std::vector<const char*> outputNamesPtr;
-    for (const auto& name : outputNames) {
-        outputNamesPtr.push_back(name.c_str());
-    }
-
-    // Создаем вектор пустых Ort::Value (аллокацию памяти под выходы берет на себя ONNX Runtime)
     std::vector<Ort::Value> outputTensors;
-    for (size_t i = 0; i < numOutputs; ++i) {
-        outputTensors.push_back(Ort::Value{nullptr});
-    }
+    outputTensors.push_back(Ort::Value{nullptr}); // Выход всего один
 
-    // 3. Запускаем инференс
+    // 3. Запуск инференса
     try {
         session->Run(
                 Ort::RunOptions{nullptr},
                 inputNamesPtr.data(), &inputTensor, 1,
-                outputNamesPtr.data(), outputTensors.data(), numOutputs
+                outputNamesPtr.data(), outputTensors.data(), 1
         );
     } catch (const std::exception& e) {
         std::cerr << "[Detector] Ошибка во время выполнения Run(): " << e.what() << std::endl;
         return {};
     }
 
-    // 4. Постпроцессинг (разбор геометрии под формат NCHW [1, 255, H, W])
+    // 4. НОВЫЙ Постпроцессинг для YOLOv11
     std::vector<cv::Rect> boxes;
     std::vector<float> confidences;
     std::vector<int> classIds;
 
-    const int numAnchorsPerLayer = 3;
-    const int numClasses = 80;
-    const int elementsPerAnchor = 5 + numClasses; // 85
+    // Извлекаем указатель на сырые float данные выхода
+    float* rawOutput = outputTensors[0].GetTensorMutableData<float>();
+    auto tensorInfo = outputTensors[0].GetTensorTypeAndShapeInfo();
+    auto outputShape = tensorInfo.GetShape(); // Формат формы: [1, 13, 2100]
 
-    // Стандартные анкоры для YOLOv4-Tiny (базовые эталонные размеры коробок)
-    // Разделены на два выходных слоя по правилам архитектуры
-    const float anchors[2][3][2] = {
-            { {81, 82},  {135, 169}, {344, 319} },  // Для сетки 13x13 (conv2d_17)
-            { {10, 14},  {23, 27},   {37, 58} }     // Для сетки 26x26 (conv2d_20)
-    };
+    // Выходная матрица YOLOv11 имеет структуру [1, (4_координаты + N_классов), Кол-во_анкеров]
+    // Для нашего датасета: 4 + 9 классов дефектов = 13 строк. 2100 колонок (для размера 320x320)
+    int rows = static_cast<int>(outputShape[1]); // 13
+    int columns = static_cast<int>(outputShape[2]); // 2100
+    int numClasses = rows - 4; // 9 классов дефектов
 
-    for (size_t t = 0; t < numOutputs; ++t) {
-        float* rawOutput = outputTensors[t].GetTensorMutableData<float>();
-        auto tensorInfo = outputTensors[t].GetTensorTypeAndShapeInfo();
-        auto outputShape = tensorInfo.GetShape();
+    // Для удобства работы в OpenCV оборачиваем указатель в cv::Mat. Размеры матрицы: 13 x 2100
+    cv::Mat outputMatrix(rows, columns, CV_32F, rawOutput);
 
-        int gridH = static_cast<int>(outputShape[2]); // 13 или 26
-        int gridW = static_cast<int>(outputShape[3]); // 13 или 26
-        int gridSize = gridH * gridW;
+    // В YOLOv11 данные идут по столбцам, нам нужно транспонировать матрицу,
+    // чтобы получить структуру: 2100 строк и 13 столбцов (каждая строка — один объект)
+    cv::Mat transposedMatrix = outputMatrix.t();
 
-        // Вычисляем шаг сетки относительно входного размера сети (416x416)
-        float strideX = static_cast<float>(inputWidth) / gridW;
-        float strideY = static_cast<float>(inputHeight) / gridH;
+    // Коэффициенты масштабирования из размера сети (320) в размер исходной картинки
+    float scaleX = static_cast<float>(originalWidth) / inputWidth;
+    float scaleY = static_cast<float>(originalHeight) / inputHeight;
 
-        for (int a = 0; a < numAnchorsPerLayer; ++a) {
-            int anchorOffset = a * elementsPerAnchor;
+    // Проходим циклом по всем 2100 потенциальным рамкам
+    for (int i = 0; i < transposedMatrix.rows; ++i) {
+        float* data = transposedMatrix.ptr<float>(i);
 
-            for (int q = 0; q < gridH; ++q) {
-                for (int p = 0; p < gridW; ++p) {
-                    int cellIndex = q * gridW + p;
+        // В YOLOv11 вероятности классов начинаются строго после первых 4 координат (индексы с 4 по 12)
+        float* classesScores = data + 4;
 
-                    int objChannel = anchorOffset + 4;
-                    float objectness = rawOutput[objChannel * gridSize + cellIndex];
-                    objectness = 1.0f / (1.0f + std::exp(-objectness)); // Сигмоида
+        // Быстро находим индекс лучшего класса с помощью OpenCV аналога std::max_element
+        cv::Mat scoresMat(1, numClasses, CV_32F, classesScores);
+        double maxClassScore;
+        cv::Point classIdPoint;
+        cv::minMaxLoc(scoresMat, nullptr, &maxClassScore, nullptr, &classIdPoint);
 
-                    if (objectness < confidenceThreshold) continue;
+        float finalConfidence = static_cast<float>(maxClassScore);
 
-                    // Поиск лучшего класса
-                    float maxClassScore = 0.0f;
-                    int classId = -1;
-                    for (int c = 0; c < numClasses; ++c) {
-                        int classChannel = anchorOffset + 5 + c;
-                        float score = rawOutput[classChannel * gridSize + cellIndex];
-                        score = 1.0f / (1.0f + std::exp(-score)); // Сигмоида
+        // Отсекаем мусорные рамки по порогу уверенности (например, 0.25)
+        if (finalConfidence > confidenceThreshold) {
+            // YOLOv11 отдает координаты центра, ширины и высоты в абсолютных пикселях шкалы модели (320)
+            float cx = data[0];
+            float cy = data[1];
+            float w = data[2];
+            float h = data[3];
 
-                        if (score > maxClassScore) {
-                            maxClassScore = score;
-                            classId = c;
-                        }
-                    }
+            // Переводим координаты в пиксели оригинального разрешения платы и смещаем центр к верхнему левому углу
+            int real_w = static_cast<int>(w * scaleX);
+            int real_h = static_cast<int>(h * scaleY);
+            int real_x = static_cast<int>((cx - w / 2.0f) * scaleX);
+            int real_y = static_cast<int>((cy - h / 2.0f) * scaleY);
 
-                    float finalConfidence = objectness * maxClassScore;
+            // Ограничиваем рамки рамками картинки, чтобы не выйти за границы std::vector / cv::Mat
+            cv::Rect box;
+            box.x = cv::max(0, cv::min(real_x, originalWidth - 1));
+            box.y = cv::max(0, cv::min(real_y, originalHeight - 1));
+            box.width = cv::max(1, cv::min(real_w, originalWidth - box.x));
+            box.height = cv::max(1, cv::min(real_h, originalHeight - box.y));
 
-                    if (finalConfidence > confidenceThreshold) {
-                        float raw_x = rawOutput[(anchorOffset + 0) * gridSize + cellIndex];
-                        float raw_y = rawOutput[(anchorOffset + 1) * gridSize + cellIndex];
-                        float raw_w = rawOutput[(anchorOffset + 2) * gridSize + cellIndex];
-                        float raw_h = rawOutput[(anchorOffset + 3) * gridSize + cellIndex];
-
-                        // Математически корректное восстановление центра бокса на входном разрешении 416x416
-                        float cx = (1.0f / (1.0f + std::exp(-raw_x)) + p) * strideX;
-                        float cy = (1.0f / (1.0f + std::exp(-raw_y)) + q) * strideY;
-
-                        // Восстановление размеров w и h с использованием логарифмических анкоров
-                        float anchorW = anchors[t][a][0];
-                        float anchorH = anchors[t][a][1];
-                        float nw = std::exp(raw_w) * anchorW;
-                        float nh = std::exp(raw_h) * anchorH;
-
-                        // Перевод координат из масштаба нейросети (416) в масштаб экрана веб-камеры
-                        float scaleX = static_cast<float>(originalWidth) / inputWidth;
-                        float scaleY = static_cast<float>(originalHeight) / inputHeight;
-
-                        int real_w = static_cast<int>(nw * scaleX);
-                        int real_h = static_cast<int>(nh * scaleY);
-                        int real_x = static_cast<int>((cx - nw / 2.0f) * scaleX);
-                        int real_y = static_cast<int>((cy - nh / 2.0f) * scaleY);
-
-                        cv::Rect box;
-                        box.x = cv::max(0, cv::min(real_x, originalWidth - 1));
-                        box.y = cv::max(0, cv::min(real_y, originalHeight - 1));
-                        box.width = cv::max(1, cv::min(real_w, originalWidth - box.x));
-                        box.height = cv::max(1, cv::min(real_h, originalHeight - box.y));
-
-                        boxes.push_back(box);
-                        confidences.push_back(finalConfidence);
-                        classIds.push_back(classId);
-                    }
-                }
-            }
+            boxes.push_back(box);
+            confidences.push_back(finalConfidence);
+            classIds.push_back(classIdPoint.x);
         }
     }
 
-    // 5. Применяем NMS (Non-Maximum Suppression) для удаления дубликатов рамок
+    // 5. Применяем NMS (Non-Maximum Suppression) для удаления дублирующих перекрывающихся рамок
     std::vector<int> indices;
     cv::dnn::NMSBoxes(boxes, confidences, confidenceThreshold, nmsThreshold, indices);
 
-    // 6. Формируем финальный вектор детекций с исправленными индексами NMS
+    // 6. Формируем финальный вектор детекций дефектов для отрисовки
     std::vector<Detection> detections;
     for (size_t i = 0; i < indices.size(); ++i) {
         int idx = indices[i];
