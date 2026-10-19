@@ -6,8 +6,8 @@
 #include <cmath>
 
 Detector::Detector() : env(ORT_LOGGING_LEVEL_WARNING, "YOLOv11-DirectML") {
-    // 1. Имена классов (теперь у нас 9 классов дефектов вместо 80 классов COCO)
-    // Укажите путь к новому текстовому файлу, где построчно записаны ваши дефекты Short, Open и т.д.
+    /
+    // Укажите путь к  текстовому файлу, где построчно записаны дефекты
     loadClassNames("C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/pcb_classes.txt", classesCopper);
     loadClassNames("C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/pcb_classes_green.txt", classesGreen);
 
@@ -23,19 +23,19 @@ Detector::Detector() : env(ORT_LOGGING_LEVEL_WARNING, "YOLOv11-DirectML") {
         std::cout << "[Detector] Аппаратное ускорение DirectML (AMD GPU) подключено." << std::endl;
     }
 
-    // 3. Загружаем вашу новую модель YOLOv11 ONNX (которую мы экспортировали с imgsz=320)
+    // 3. Загружаем модели YOLOv11 ONNX
     std::wstring pathCopper = L"C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/best_copper.onnx";
     std::wstring pathGreen = L"C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/best_green.onnx";
 
     sessionCopper = std::make_unique<Ort::Session>(env, pathCopper.c_str(), sessionOptions);
     sessionGreen = std::make_unique<Ort::Session>(env, pathGreen.c_str(), sessionOptions);
 
-    // ВАЖНО: В YOLOv11 имя входного слоя стандартное, а выходной слой ВСЕГО ОДИН.
+    // имена входного слоя и выходного слоев.
     inputNames = { "images" };
     outputNames = { "output0" };
 
     // Убедитесь, что эти константы объявлены в вашем detector.hpp:
-    inputWidth = 320;   // Меняем 416 на 320 под наше обучение
+    inputWidth = 320;
     inputHeight = 320;
 
     std::cout << "[Detector] Модель YOLOv11 ONNX успешно загружена!" << std::endl;
@@ -88,13 +88,13 @@ std::vector<Detection> Detector::detect(const cv::Mat& input) {
         std::cout << "[DML] Выбрана модель: МЕДНАЯ ПЛАТА -> ";
     }
 
-    // 1. Препроцессинг через OpenCV (YOLOv11 требует нормализацию 1/255 и формат RGB (swapRB=true))
+    // Препроцессинг
     cv::Mat blob = cv::dnn::blobFromImage(input, 1.0 / 255.0, cv::Size(inputWidth, inputHeight), cv::Scalar(), true, false);
 
     std::vector<float> inputData;
     inputData.assign(blob.ptr<float>(), blob.ptr<float>() + blob.total());
 
-    // 2. Создаем структуру тензора для ONNX Runtime
+    //  Создаем структуру тензора для ONNX Runtime
     std::vector<int64_t> inputDims = {1, 3, inputHeight, inputWidth};
     auto memoryInfo = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
 
@@ -112,7 +112,7 @@ std::vector<Detection> Detector::detect(const cv::Mat& input) {
     std::vector<Ort::Value> outputTensors;
     outputTensors.push_back(Ort::Value{nullptr}); // Выход всего один
 
-    // 3. Запуск инференса
+    //  Запуск инференса
     try {
         activeSession->Run(
                 Ort::RunOptions{nullptr},
@@ -124,7 +124,7 @@ std::vector<Detection> Detector::detect(const cv::Mat& input) {
         return {};
     }
 
-    // 4. НОВЫЙ Постпроцессинг для YOLOv11
+    // Постпроцессинг
     std::vector<cv::Rect> boxes;
     std::vector<float> confidences;
     std::vector<int> classIds;
@@ -134,8 +134,7 @@ std::vector<Detection> Detector::detect(const cv::Mat& input) {
     auto tensorInfo = outputTensors[0].GetTensorTypeAndShapeInfo();
     auto outputShape = tensorInfo.GetShape(); // Формат формы: [1, 13, 2100]
 
-    // Выходная матрица YOLOv11 имеет структуру [1, (4_координаты + N_классов), Кол-во_анкеров]
-    // Для нашего датасета: 4 + 9 классов дефектов = 13 строк. 2100 колонок (для размера 320x320)
+    // Выходная матрица  имеет структуру [1, (4_координаты + N_классов), Кол-во_анкеров]
     int rows = static_cast<int>(outputShape[1]); // 13
     int columns = static_cast<int>(outputShape[2]); // 2100
     int numClasses = rows - 4; // 9 классов дефектов
@@ -155,7 +154,7 @@ std::vector<Detection> Detector::detect(const cv::Mat& input) {
     for (int i = 0; i < transposedMatrix.rows; ++i) {
         float* data = transposedMatrix.ptr<float>(i);
 
-        // В YOLOv11 вероятности классов начинаются строго после первых 4 координат (индексы с 4 по 12)
+        // вероятности классов начинаются строго после первых 4 координат (индексы с 4 по 12)
         float* classesScores = data + 4;
 
         // Быстро находим индекс лучшего класса с помощью OpenCV аналога std::max_element

@@ -32,7 +32,7 @@ nlohmann::ordered_json processImageResults(const std::string& fileName, const st
     for (const auto& det : detections) {
         nlohmann::ordered_json defectJson;
 
-        // Используем ваши актуальные поля из структуры Detection: className и bbox
+        // Используем актуальные поля из структуры Detection: className и bbox
         defectJson["type"] = det.className;
 
         defectJson["box"] = {
@@ -47,7 +47,7 @@ nlohmann::ordered_json processImageResults(const std::string& fileName, const st
 }
 
 
-// Ленивая инициализация компонентов (Ваша исходная архитектура)
+// Ленивая инициализация компонентов
 Detector& getDetector() {
     static Detector detector;
     return detector;
@@ -80,7 +80,7 @@ int main() {
 
     std::cout << "[Main] Инициализация модулей программы..." << std::endl;
 
-    // 1. Конфигурация путей (Укажите ваши реальные папки)
+    // 1. Конфигурация путей
     std::string inputFolderPath = "C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/pcb_train_pic";   // Папка с исходными платами
     std::string outputFolderPath = "C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/pcb_train_res";      // Папка для сохранения результатов
 
@@ -101,7 +101,7 @@ int main() {
     // Создаем  JSON-массив, для описания обработанных изображений
     json rootResultArray = json::array();
 
-    // Предварительный подсчет файлов для вывода красивого прогресса в консоль
+    // Предварительный подсчет файлов для вывода прогресса в консоль
     int totalImages = 0;
     for (const auto& entry : fs::directory_iterator(inputFolderPath)) {
         if (fs::is_regular_file(entry.path()) && isImage(entry.path())) {
@@ -112,7 +112,7 @@ int main() {
     std::cout << "[Main] Модули готовы. Найдено изображений для анализа: " << totalImages << std::endl;
     std::cout << "[Main] Начинаем пакетную обработку плат..." << std::endl;
 
-    // 2. Основной цикл последовательного чтения папки (Итератор C++17)
+    // 2. Основной цикл последовательного чтения папки
     int processedCount = 0;
     for (const auto& entry : fs::directory_iterator(inputFolderPath)) {
         if (fs::is_regular_file(entry.path()) && isImage(entry.path())) {
@@ -130,11 +130,11 @@ int main() {
                 continue;
             }
 
-            // Отправляем кадр в вашу модель YOLOv11 через синглтон детектора
+            // Отправляем кадр в модель через синглтон детектора
             std::vector<Detection> detections = getDetector().detect(frame);
             std::cout << "Найдено дефектов: " << detections.size() << std::endl;
 
-            // Используем ваш визуализатор для отрисовки рамок дефектов
+            // Используем визуализатор для отрисовки рамок дефектов
             // Передаем 0.0 вместо FPS, так как для статичных файлов этот параметр не используется
             getVisualizer().draw(frame, detections, 0.0);
 
@@ -150,13 +150,13 @@ int main() {
     }
 
 
-// ЛИБО, если хотите перестраховаться, просто дайте ей уникальное имя:
+// Записываем результаты в json файл
     std::string finalReportPath = outputFolderPath + "/global_results.json";
     std::ofstream file(finalReportPath);
     if (file.is_open()) {
         file << rootResultArray.dump(4);
         file.close();
-        std::cout << "\n[УСПЕХ] Общий JSON-отчет сохранен: " << finalReportPath << std::endl;
+        std::cout << "\nОбщий JSON-отчет сохранен: " << finalReportPath << std::endl;
     }
     std::cout << "[Main] Программа успешно завершила работу." << std::endl;
     std::cout << "[Main] Все обработанные изображения сохранены в папку: " << outputFolderPath << std::endl;
