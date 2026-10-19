@@ -1,15 +1,51 @@
 #include <iostream>
+#include <fstream>
+#include <filesystem>
 #include <opencv2/opencv.hpp>
 #include <windows.h>
 #include <filesystem>
 #include <algorithm>
-
+#include <nlohmann/json.hpp>
 #include "detector.hpp"
 #include "visualizer.hpp"
 
 namespace fs = std::filesystem;
 using namespace cv;
 using namespace std;
+using json = nlohmann::json;
+namespace fs = std::filesystem;
+
+
+// Структура для одного дефекта
+struct Defect {
+    std::string type;
+    cv::Rect box;
+};
+
+// Функция, которая упаковывает данные одного изображения в JSON-объект
+json processImageResults(const std::string& fileName, const std::vector<Detection>& detections) {
+    json imageJson;
+    imageJson["filename"] = fileName;
+    imageJson["total_defects"] = detections.size();
+    imageJson["defects"] = json::array();
+
+    for (const auto& det : detections) {
+        json defectJson;
+
+        // Используем ваши актуальные поля из структуры Detection: className и bbox
+        defectJson["type"] = det.className;
+
+        defectJson["box"] = {
+                {"x", det.bbox.x},
+                {"y", det.bbox.y},
+                {"width", det.bbox.width},
+                {"height", det.bbox.height}
+        };
+        imageJson["defects"].push_back(defectJson);
+    }
+    return imageJson;
+}
+
 
 // Ленивая инициализация компонентов (Ваша исходная архитектура)
 Detector& getDetector() {
@@ -60,6 +96,11 @@ int main() {
         fs::create_directories(outputFolderPath);
     }
 
+    std::string globalJsonPath = (fs::path(outputFolderPath) / "global_results.json").string();
+
+    // Создаем  JSON-массив, для описания обработанных изображений
+    json rootResultArray = json::array();
+
     // Предварительный подсчет файлов для вывода красивого прогресса в консоль
     int totalImages = 0;
     for (const auto& entry : fs::directory_iterator(inputFolderPath)) {
@@ -102,9 +143,21 @@ int main() {
             if (!cv::imwrite(savePath, frame)) {
                 std::cerr << "Критическая ошибка при записи файла: " << savePath << std::endl;
             }
+
+            json currentImageJson = processImageResults(filename, detections);
+            rootResultArray.push_back(currentImageJson);
         }
     }
 
+
+// ЛИБО, если хотите перестраховаться, просто дайте ей уникальное имя:
+    std::string finalReportPath = outputFolderPath + "/global_results.json";
+    std::ofstream file(finalReportPath);
+    if (file.is_open()) {
+        file << rootResultArray.dump(4);
+        file.close();
+        std::cout << "\n[УСПЕХ] Общий JSON-отчет сохранен: " << finalReportPath << std::endl;
+    }
     std::cout << "[Main] Программа успешно завершила работу." << std::endl;
     std::cout << "[Main] Все обработанные изображения сохранены в папку: " << outputFolderPath << std::endl;
 

@@ -15,6 +15,7 @@ set(OpenCV_DIR "C:/libs/opencv/build/x64/vc16/lib")
 
 # Находим OpenCV
 find_package(OpenCV REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 # ============================================================================
 # РУЧНОЕ ПОДКЛЮЧЕНИЕ ONNX RUNTIME DIRECTML (Исправленные пути)
@@ -43,6 +44,7 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
         ${OpenCV_LIBS}
         onnxruntime.lib
+        nlohmann_json::nlohmann_json
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
