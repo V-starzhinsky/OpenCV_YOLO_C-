@@ -8,7 +8,8 @@
 Detector::Detector() : env(ORT_LOGGING_LEVEL_WARNING, "YOLOv11-DirectML") {
     // 1. Имена классов (теперь у нас 9 классов дефектов вместо 80 классов COCO)
     // Укажите путь к новому текстовому файлу, где построчно записаны ваши дефекты Short, Open и т.д.
-    loadClassNames("C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/pcb_classes.txt");
+    loadClassNames("C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/pcb_classes.txt", classesCopper);
+    loadClassNames("C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/pcb_classes_green.txt", classesGreen);
 
     // 2. Настраиваем опции сессии и DirectML для работы на видеокарте AMD
     Ort::SessionOptions sessionOptions;
@@ -23,8 +24,11 @@ Detector::Detector() : env(ORT_LOGGING_LEVEL_WARNING, "YOLOv11-DirectML") {
     }
 
     // 3. Загружаем вашу новую модель YOLOv11 ONNX (которую мы экспортировали с imgsz=320)
-    std::wstring modelPath = L"C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/best.onnx";
-    session = std::make_unique<Ort::Session>(env, modelPath.c_str(), sessionOptions);
+    std::wstring pathCopper = L"C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/best_copper.onnx";
+    std::wstring pathGreen = L"C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/best_green.onnx";
+
+    sessionCopper = std::make_unique<Ort::Session>(env, pathCopper.c_str(), sessionOptions);
+    sessionGreen = std::make_unique<Ort::Session>(env, pathGreen.c_str(), sessionOptions);
 
     // ВАЖНО: В YOLOv11 имя входного слоя стандартное, а выходной слой ВСЕГО ОДИН.
     inputNames = { "images" };
@@ -37,12 +41,12 @@ Detector::Detector() : env(ORT_LOGGING_LEVEL_WARNING, "YOLOv11-DirectML") {
     std::cout << "[Detector] Модель YOLOv11 ONNX успешно загружена!" << std::endl;
 }
 
-void Detector::loadClassNames(const std::string& path) {
-    classes.clear();
+void Detector::loadClassNames(const std::string& path, std::vector<std::string>& targetVector) {
+    targetVector.clear();
     std::ifstream ifs(path);
     std::string line;
     while (std::getline(ifs, line)) {
-        if (!line.empty()) classes.push_back(line);
+        if (!line.empty()) targetVector.push_back(line);
     }
 }
 
@@ -51,6 +55,38 @@ std::vector<Detection> Detector::detect(const cv::Mat& input) {
 
     int originalWidth = input.cols;
     int originalHeight = input.rows;
+
+    //определение цвета платы
+    cv::Mat hsv;
+    cv::cvtColor(input, hsv, cv::COLOR_BGR2HSV);
+
+    //создаем маску и проверяем пиксели , еси его HSV попадает в границы скаляра, то он становится белым
+    //если нет - черным
+    cv::Mat mask;
+    cv::Scalar lowerGreen (35, 40, 40);
+    cv::Scalar upperGreen(85, 255, 255);
+    cv::inRange(hsv, lowerGreen, upperGreen, mask);
+
+    //считаем только белыее пиксели в одноканальной маске
+    double greenPixels = cv::countNonZero(mask);
+    double totalPixels = originalWidth * originalHeight;
+    double greenPercentage = (greenPixels/totalPixels) * 100.0;
+
+    //Свитчер указателей на сессии
+    Ort::Session* activeSession = nullptr;
+    const std::vector<std::string>* activeClasses = nullptr;
+
+    //если > 15% изображения зеленый цвет  выбираем "зеленую" сессию
+    if(greenPercentage > 15.0){
+        activeSession = sessionGreen.get();
+        activeClasses = &classesGreen;
+        std::cout << "[DML] Выбрана модель: ЗЕЛЕНАЯ ПЛАТА -> ";
+    }
+    else{
+        activeSession = sessionCopper.get();
+        activeClasses = &classesCopper;
+        std::cout << "[DML] Выбрана модель: МЕДНАЯ ПЛАТА -> ";
+    }
 
     // 1. Препроцессинг через OpenCV (YOLOv11 требует нормализацию 1/255 и формат RGB (swapRB=true))
     cv::Mat blob = cv::dnn::blobFromImage(input, 1.0 / 255.0, cv::Size(inputWidth, inputHeight), cv::Scalar(), true, false);
@@ -78,7 +114,7 @@ std::vector<Detection> Detector::detect(const cv::Mat& input) {
 
     // 3. Запуск инференса
     try {
-        session->Run(
+        activeSession->Run(
                 Ort::RunOptions{nullptr},
                 inputNamesPtr.data(), &inputTensor, 1,
                 outputNamesPtr.data(), outputTensors.data(), 1
@@ -169,7 +205,7 @@ std::vector<Detection> Detector::detect(const cv::Mat& input) {
         det.bbox = boxes[idx];
         det.confidence = confidences[idx];
         det.classId = classIds[idx];
-        det.className = (det.classId >= 0 && det.classId < (int)classes.size()) ? classes[det.classId] : "unknown";
+        det.className = (det.classId >= 0 && det.classId < (int)activeClasses->size()) ? (*activeClasses)[det.classId] : "unknown";
         detections.push_back(det);
     }
 

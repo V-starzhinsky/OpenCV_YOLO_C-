@@ -13,24 +13,27 @@
 class Detector {
 public:
     Detector();
+    ~Detector() = default;
     std::vector<Detection> detect(const cv::Mat& input);
 
 private:
     // Объекты окружения и сессии ONNX Runtime
     Ort::Env env;
-    std::unique_ptr<Ort::Session> session;
-
+    // std::unique_ptr<Ort::Session> session;
+    std::unique_ptr<Ort::Session> sessionCopper;
+    std::unique_ptr<Ort::Session> sessionGreen;
     // Параметры модели
     int inputWidth = 320;
     int inputHeight = 320;
     float confidenceThreshold = 0.25f;
     float nmsThreshold = 0.4f;
 
-    std::vector<std::string> classes;
+    std::vector<std::string> classesCopper;
+    std::vector<std::string> classesGreen;
 
     // ИСПРАВЛЕНО: Используем std::string для безопасного хранения строк
     std::vector<std::string> inputNames;
     std::vector<std::string> outputNames;
 
-    void loadClassNames(const std::string& path);
+    void loadClassNames(const std::string& path, std::vector<std::string>& targetVector);
 };

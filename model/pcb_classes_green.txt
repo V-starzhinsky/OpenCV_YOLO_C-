@@ -1,0 +1,8 @@
+Short
+Spur
+Spurious Copper
+Open
+Mouse Bite
+Hole Breakout
+Conductor Foreign Object
+Base Material Foreign Object

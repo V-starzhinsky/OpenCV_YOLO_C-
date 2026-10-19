@@ -23,14 +23,14 @@ struct Defect {
 };
 
 // Функция, которая упаковывает данные одного изображения в JSON-объект
-json processImageResults(const std::string& fileName, const std::vector<Detection>& detections) {
-    json imageJson;
+nlohmann::ordered_json processImageResults(const std::string& fileName, const std::vector<Detection>& detections) {
+    nlohmann::ordered_json imageJson;
     imageJson["filename"] = fileName;
     imageJson["total_defects"] = detections.size();
-    imageJson["defects"] = json::array();
+    imageJson["defects"] = nlohmann::ordered_json::array();
 
     for (const auto& det : detections) {
-        json defectJson;
+        nlohmann::ordered_json defectJson;
 
         // Используем ваши актуальные поля из структуры Detection: className и bbox
         defectJson["type"] = det.className;
