@@ -24,7 +24,7 @@ Detector::Detector() : env(ORT_LOGGING_LEVEL_WARNING, "YOLOv11-DirectML") {
     }
 
     // 3. Загружаем модели YOLOv11 ONNX
-    std::wstring pathCopper = L"C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/best_copper.onnx";
+    std::wstring pathCopper = L"C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/copper_new.onnx";
     std::wstring pathGreen = L"C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/best_green.onnx";
 
     sessionCopper = std::make_unique<Ort::Session>(env, pathCopper.c_str(), sessionOptions);
