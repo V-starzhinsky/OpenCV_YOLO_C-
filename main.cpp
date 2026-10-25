@@ -81,8 +81,8 @@ int main() {
     std::cout << "[Main] Инициализация модулей программы..." << std::endl;
 
     // 1. Конфигурация путей
-    std::string inputFolderPath = "C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/pcb_train_pic";   // Папка с исходными платами
-    std::string outputFolderPath = "C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/pcb_train_res";      // Папка для сохранения результатов
+    std::string inputFolderPath = "C:/Users/sulim/CLionProjects/OpenCV_YOLO_C-/pcb_pic";   // Папка с исходными платами
+    std::string outputFolderPath = "C:/Users/sulim/CLionProjects/OpenCV_YOLO_C-/pcb_pic_res";      // Папка для сохранения результатов
 
     // Проверяем существование входной директории
     if (!fs::exists(inputFolderPath) || !fs::is_directory(inputFolderPath)) {

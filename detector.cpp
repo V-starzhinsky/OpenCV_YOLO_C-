@@ -6,10 +6,9 @@
 #include <cmath>
 
 Detector::Detector() : env(ORT_LOGGING_LEVEL_WARNING, "YOLOv11-DirectML") {
-    /
     // Укажите путь к  текстовому файлу, где построчно записаны дефекты
-    loadClassNames("C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/pcb_classes.txt", classesCopper);
-    loadClassNames("C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/pcb_classes_green.txt", classesGreen);
+    loadClassNames("C:/Users/sulim/CLionProjects/OpenCV_YOLO_C-/model/pcb_classes.txt", classesCopper);
+    loadClassNames("C:/Users/sulim/CLionProjects/OpenCV_YOLO_C-/model/pcb_classes_green.txt", classesGreen);
 
     // 2. Настраиваем опции сессии и DirectML для работы на видеокарте AMD
     Ort::SessionOptions sessionOptions;
@@ -24,8 +23,8 @@ Detector::Detector() : env(ORT_LOGGING_LEVEL_WARNING, "YOLOv11-DirectML") {
     }
 
     // 3. Загружаем модели YOLOv11 ONNX
-    std::wstring pathCopper = L"C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/copper_new.onnx";
-    std::wstring pathGreen = L"C:/Users/ponka/CLionProjects/OpenCV_YOLO_CUDA/model/best_green.onnx";
+    std::wstring pathCopper = L"C:/Users/sulim/CLionProjects/OpenCV_YOLO_C-/model/best_copper_DataPCBSD.onnx";
+    std::wstring pathGreen = L"C:/Users/sulim/CLionProjects/OpenCV_YOLO_C-/model/best_green_akhatova.onnx";
 
     sessionCopper = std::make_unique<Ort::Session>(env, pathCopper.c_str(), sessionOptions);
     sessionGreen = std::make_unique<Ort::Session>(env, pathGreen.c_str(), sessionOptions);
