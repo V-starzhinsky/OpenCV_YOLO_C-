@@ -12,6 +12,8 @@ pcb_train_res/
 *.weights
 *.onnx
 *.jpg
+*.log
+*.bak
 
 # Системные файлы
 Thumbs.db

@@ -7,6 +7,15 @@ add_compile_options("/D__builtin_verbose_trap(a,b)=__noop")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+
+
+# QT
+set(Qt6_DIR "C:/libs/Qt_MSVC/6.7.3/msvc2019_64/lib/cmake/Qt6")
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOMOC ON)
+
+
 set(MODEL_PATH "${CMAKE_SOURCE_DIR}/model")
 add_definitions(-DMODEL_PATH=${MODEL_PATH})
 
@@ -16,6 +25,9 @@ set(OpenCV_DIR "C:/libs/opencv/build/x64/vc16/lib")
 # Находим OpenCV
 find_package(OpenCV REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+message(STATUS "Qt6 найден: ${Qt6_DIR}")
+
 
 # ============================================================================
 # РУЧНОЕ ПОДКЛЮЧЕНИЕ ONNX RUNTIME DIRECTML (Исправленные пути)
@@ -39,12 +51,17 @@ add_executable(${PROJECT_NAME}
         detector.cpp
         FpsCounter.cpp
         VideoStreamer.cpp
+        mainwindow.h
+        mainwindow.cpp
+        batchworker.cpp
+        batchworker.h
 )
 
 target_link_libraries(${PROJECT_NAME}
         ${OpenCV_LIBS}
         onnxruntime.lib
         nlohmann_json::nlohmann_json
+        Qt6::Widgets
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

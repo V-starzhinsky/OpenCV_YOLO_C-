@@ -1,0 +1,580 @@
+[
+    {
+        "filename": "0080895.jpg",
+        "total_defects": 5,
+        "defects": [
+            {
+                "type": "Hole Breakout",
+                "box": {
+                    "x": 90,
+                    "y": 93,
+                    "width": 41,
+                    "height": 41
+                }
+            },
+            {
+                "type": "Hole Breakout",
+                "box": {
+                    "x": 163,
+                    "y": 166,
+                    "width": 40,
+                    "height": 40
+                }
+            },
+            {
+                "type": "Hole Breakout",
+                "box": {
+                    "x": 19,
+                    "y": 84,
+                    "width": 41,
+                    "height": 41
+                }
+            },
+            {
+                "type": "Hole Breakout",
+                "box": {
+                    "x": 163,
+                    "y": 94,
+                    "width": 40,
+                    "height": 40
+                }
+            },
+            {
+                "type": "Hole Breakout",
+                "box": {
+                    "x": 163,
+                    "y": 20,
+                    "width": 40,
+                    "height": 41
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0081072.jpg",
+        "total_defects": 2,
+        "defects": [
+            {
+                "type": "Base Material Foreign Object",
+                "box": {
+                    "x": 12,
+                    "y": 0,
+                    "width": 164,
+                    "height": 184
+                }
+            },
+            {
+                "type": "Conductor Foreign Object",
+                "box": {
+                    "x": 55,
+                    "y": 162,
+                    "width": 49,
+                    "height": 43
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0084149.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Conductor Scratch",
+                "box": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 226,
+                    "height": 212
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0094569.jpg",
+        "total_defects": 2,
+        "defects": [
+            {
+                "type": "Conductor Scratch",
+                "box": {
+                    "x": 146,
+                    "y": 2,
+                    "width": 80,
+                    "height": 151
+                }
+            },
+            {
+                "type": "Conductor Scratch",
+                "box": {
+                    "x": 44,
+                    "y": 163,
+                    "width": 116,
+                    "height": 62
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0100374.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Base Material Foreign Object",
+                "box": {
+                    "x": 102,
+                    "y": 98,
+                    "width": 20,
+                    "height": 77
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0100850.jpg",
+        "total_defects": 2,
+        "defects": [
+            {
+                "type": "Base Material Foreign Object",
+                "box": {
+                    "x": 157,
+                    "y": 105,
+                    "width": 69,
+                    "height": 32
+                }
+            },
+            {
+                "type": "Base Material Foreign Object",
+                "box": {
+                    "x": 0,
+                    "y": 98,
+                    "width": 139,
+                    "height": 31
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0102708.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Base Material Foreign Object",
+                "box": {
+                    "x": 48,
+                    "y": 91,
+                    "width": 104,
+                    "height": 42
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0103645.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Conductor Scratch",
+                "box": {
+                    "x": 66,
+                    "y": 29,
+                    "width": 45,
+                    "height": 74
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0103984.jpg",
+        "total_defects": 2,
+        "defects": [
+            {
+                "type": "Base Material Foreign Object",
+                "box": {
+                    "x": 43,
+                    "y": 62,
+                    "width": 120,
+                    "height": 88
+                }
+            },
+            {
+                "type": "Mouse Bite",
+                "box": {
+                    "x": 97,
+                    "y": 87,
+                    "width": 66,
+                    "height": 60
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0105630.jpg",
+        "total_defects": 2,
+        "defects": [
+            {
+                "type": "Base Material Foreign Object",
+                "box": {
+                    "x": 82,
+                    "y": 93,
+                    "width": 29,
+                    "height": 29
+                }
+            },
+            {
+                "type": "Base Material Foreign Object",
+                "box": {
+                    "x": 34,
+                    "y": 109,
+                    "width": 15,
+                    "height": 19
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0105831.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Base Material Foreign Object",
+                "box": {
+                    "x": 93,
+                    "y": 97,
+                    "width": 57,
+                    "height": 65
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0105947.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Conductor Foreign Object",
+                "box": {
+                    "x": 95,
+                    "y": 18,
+                    "width": 77,
+                    "height": 76
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0105948.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Conductor Foreign Object",
+                "box": {
+                    "x": 81,
+                    "y": 92,
+                    "width": 77,
+                    "height": 76
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0105992.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Mouse Bite",
+                "box": {
+                    "x": 98,
+                    "y": 104,
+                    "width": 20,
+                    "height": 10
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0106083.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Base Material Foreign Object",
+                "box": {
+                    "x": 82,
+                    "y": 101,
+                    "width": 31,
+                    "height": 24
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0106128.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Conductor Foreign Object",
+                "box": {
+                    "x": 56,
+                    "y": 47,
+                    "width": 101,
+                    "height": 81
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0106191.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Open",
+                "box": {
+                    "x": 109,
+                    "y": 100,
+                    "width": 11,
+                    "height": 12
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0106207.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Spurious Copper",
+                "box": {
+                    "x": 86,
+                    "y": 94,
+                    "width": 32,
+                    "height": 21
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0107400.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Mouse Bite",
+                "box": {
+                    "x": 101,
+                    "y": 109,
+                    "width": 14,
+                    "height": 14
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0107865.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Open",
+                "box": {
+                    "x": 109,
+                    "y": 107,
+                    "width": 14,
+                    "height": 22
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0107973.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Spur",
+                "box": {
+                    "x": 100,
+                    "y": 104,
+                    "width": 13,
+                    "height": 13
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0108225.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Mouse Bite",
+                "box": {
+                    "x": 102,
+                    "y": 105,
+                    "width": 24,
+                    "height": 15
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0108252.jpg",
+        "total_defects": 0,
+        "defects": []
+    },
+    {
+        "filename": "0108337.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Spur",
+                "box": {
+                    "x": 166,
+                    "y": 195,
+                    "width": 9,
+                    "height": 7
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0108353.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Spur",
+                "box": {
+                    "x": 107,
+                    "y": 104,
+                    "width": 25,
+                    "height": 15
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0150006.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Spur",
+                "box": {
+                    "x": 102,
+                    "y": 84,
+                    "width": 13,
+                    "height": 14
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0223131.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Spurious Copper",
+                "box": {
+                    "x": 97,
+                    "y": 91,
+                    "width": 17,
+                    "height": 22
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0224275.jpg",
+        "total_defects": 3,
+        "defects": [
+            {
+                "type": "Spurious Copper",
+                "box": {
+                    "x": 72,
+                    "y": 94,
+                    "width": 42,
+                    "height": 20
+                }
+            },
+            {
+                "type": "Spurious Copper",
+                "box": {
+                    "x": 23,
+                    "y": 23,
+                    "width": 61,
+                    "height": 24
+                }
+            },
+            {
+                "type": "Spurious Copper",
+                "box": {
+                    "x": 117,
+                    "y": 95,
+                    "width": 59,
+                    "height": 22
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0273631.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Conductor Foreign Object",
+                "box": {
+                    "x": 94,
+                    "y": 96,
+                    "width": 24,
+                    "height": 19
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0273804.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Short",
+                "box": {
+                    "x": 90,
+                    "y": 85,
+                    "width": 76,
+                    "height": 61
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0273884.jpg",
+        "total_defects": 1,
+        "defects": [
+            {
+                "type": "Base Material Foreign Object",
+                "box": {
+                    "x": 84,
+                    "y": 77,
+                    "width": 115,
+                    "height": 124
+                }
+            }
+        ]
+    },
+    {
+        "filename": "0273905.jpg",
+        "total_defects": 2,
+        "defects": [
+            {
+                "type": "Base Material Foreign Object",
+                "box": {
+                    "x": 58,
+                    "y": 59,
+                    "width": 58,
+                    "height": 94
+                }
+            },
+            {
+                "type": "Conductor Foreign Object",
+                "box": {
+                    "x": 26,
+                    "y": 88,
+                    "width": 20,
+                    "height": 40
+                }
+            }
+        ]
+    }
+]
