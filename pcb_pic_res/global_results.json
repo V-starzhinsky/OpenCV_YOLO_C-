@@ -3,459 +3,578 @@
         "defects": [
             {
                 "box": {
-                    "height": 45,
-                    "width": 81,
-                    "x": 2741,
-                    "y": 710
+                    "height": 41,
+                    "width": 41,
+                    "x": 90,
+                    "y": 93
                 },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 46,
-                    "width": 86,
-                    "x": 2625,
-                    "y": 1335
-                },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 42,
-                    "width": 76,
-                    "x": 476,
-                    "y": 1131
-                },
-                "type": "Short"
-            }
-        ],
-        "filename": "Missing_hole_01_missing_hole_08.jpg",
-        "total_defects": 3
-    },
-    {
-        "defects": [
-            {
-                "box": {
-                    "height": 56,
-                    "width": 85,
-                    "x": 1214,
-                    "y": 623
-                },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 42,
-                    "width": 75,
-                    "x": 479,
-                    "y": 1132
-                },
-                "type": "Short"
-            }
-        ],
-        "filename": "Missing_hole_01_missing_hole_09.jpg",
-        "total_defects": 2
-    },
-    {
-        "defects": [
-            {
-                "box": {
-                    "height": 48,
-                    "width": 75,
-                    "x": 856,
-                    "y": 627
-                },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 34,
-                    "width": 55,
-                    "x": 1625,
-                    "y": 412
-                },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 39,
-                    "width": 83,
-                    "x": 479,
-                    "y": 910
-                },
-                "type": "Open"
-            }
-        ],
-        "filename": "Missing_hole_01_missing_hole_10.jpg",
-        "total_defects": 3
-    },
-    {
-        "defects": [
-            {
-                "box": {
-                    "height": 47,
-                    "width": 83,
-                    "x": 1489,
-                    "y": 742
-                },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 53,
-                    "width": 95,
-                    "x": 471,
-                    "y": 858
-                },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 36,
-                    "width": 72,
-                    "x": 2077,
-                    "y": 700
-                },
-                "type": "Short"
-            }
-        ],
-        "filename": "Missing_hole_01_missing_hole_11.jpg",
-        "total_defects": 3
-    },
-    {
-        "defects": [
-            {
-                "box": {
-                    "height": 50,
-                    "width": 86,
-                    "x": 1373,
-                    "y": 300
-                },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 42,
-                    "width": 73,
-                    "x": 708,
-                    "y": 628
-                },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 47,
-                    "width": 53,
-                    "x": 1507,
-                    "y": 851
-                },
-                "type": "Spur"
-            }
-        ],
-        "filename": "Missing_hole_01_missing_hole_13.jpg",
-        "total_defects": 3
-    },
-    {
-        "defects": [
-            {
-                "box": {
-                    "height": 48,
-                    "width": 74,
-                    "x": 857,
-                    "y": 628
-                },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 49,
-                    "width": 91,
-                    "x": 146,
-                    "y": 756
-                },
-                "type": "Short"
+                "type": "Hole Breakout"
             },
             {
                 "box": {
                     "height": 40,
-                    "width": 67,
-                    "x": 2290,
-                    "y": 649
+                    "width": 40,
+                    "x": 163,
+                    "y": 166
                 },
-                "type": "Short"
+                "type": "Hole Breakout"
+            },
+            {
+                "box": {
+                    "height": 41,
+                    "width": 41,
+                    "x": 19,
+                    "y": 84
+                },
+                "type": "Hole Breakout"
+            },
+            {
+                "box": {
+                    "height": 40,
+                    "width": 40,
+                    "x": 163,
+                    "y": 94
+                },
+                "type": "Hole Breakout"
+            },
+            {
+                "box": {
+                    "height": 41,
+                    "width": 40,
+                    "x": 163,
+                    "y": 20
+                },
+                "type": "Hole Breakout"
             }
         ],
-        "filename": "Missing_hole_01_missing_hole_14.jpg",
-        "total_defects": 3
+        "filename": "0080895.jpg",
+        "total_defects": 5
     },
     {
         "defects": [
             {
                 "box": {
-                    "height": 44,
-                    "width": 78,
-                    "x": 2454,
-                    "y": 1107
+                    "height": 184,
+                    "width": 164,
+                    "x": 12,
+                    "y": 0
                 },
-                "type": "Short"
+                "type": "Base Material Foreign Object"
             },
             {
                 "box": {
-                    "height": 36,
-                    "width": 68,
-                    "x": 2073,
-                    "y": 529
+                    "height": 43,
+                    "width": 49,
+                    "x": 55,
+                    "y": 162
                 },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 44,
-                    "width": 78,
-                    "x": 2069,
-                    "y": 1038
-                },
-                "type": "Short"
+                "type": "Conductor Foreign Object"
             }
         ],
-        "filename": "Missing_hole_01_missing_hole_15.jpg",
-        "total_defects": 3
-    },
-    {
-        "defects": [
-            {
-                "box": {
-                    "height": 39,
-                    "width": 76,
-                    "x": 2517,
-                    "y": 708
-                },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 48,
-                    "width": 83,
-                    "x": 1489,
-                    "y": 742
-                },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 50,
-                    "width": 89,
-                    "x": 610,
-                    "y": 730
-                },
-                "type": "Short"
-            }
-        ],
-        "filename": "Missing_hole_01_missing_hole_16.jpg",
-        "total_defects": 3
-    },
-    {
-        "defects": [
-            {
-                "box": {
-                    "height": 46,
-                    "width": 84,
-                    "x": 1718,
-                    "y": 1093
-                },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 42,
-                    "width": 76,
-                    "x": 477,
-                    "y": 1131
-                },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 48,
-                    "width": 71,
-                    "x": 914,
-                    "y": 302
-                },
-                "type": "Short"
-            }
-        ],
-        "filename": "Missing_hole_01_missing_hole_17.jpg",
-        "total_defects": 3
-    },
-    {
-        "defects": [
-            {
-                "box": {
-                    "height": 48,
-                    "width": 87,
-                    "x": 1707,
-                    "y": 1152
-                },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 48,
-                    "width": 86,
-                    "x": 2182,
-                    "y": 917
-                },
-                "type": "Short"
-            }
-        ],
-        "filename": "Missing_hole_01_missing_hole_18.jpg",
+        "filename": "0081072.jpg",
         "total_defects": 2
     },
     {
         "defects": [
             {
                 "box": {
-                    "height": 45,
-                    "width": 71,
-                    "x": 1393,
-                    "y": 744
+                    "height": 212,
+                    "width": 226,
+                    "x": 0,
+                    "y": 0
                 },
-                "type": "Short"
+                "type": "Conductor Scratch"
+            }
+        ],
+        "filename": "0084149.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 151,
+                    "width": 80,
+                    "x": 146,
+                    "y": 2
+                },
+                "type": "Conductor Scratch"
             },
             {
                 "box": {
-                    "height": 39,
-                    "width": 82,
-                    "x": 479,
-                    "y": 910
+                    "height": 62,
+                    "width": 116,
+                    "x": 44,
+                    "y": 163
+                },
+                "type": "Conductor Scratch"
+            }
+        ],
+        "filename": "0094569.jpg",
+        "total_defects": 2
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 77,
+                    "width": 20,
+                    "x": 102,
+                    "y": 98
+                },
+                "type": "Base Material Foreign Object"
+            }
+        ],
+        "filename": "0100374.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 32,
+                    "width": 69,
+                    "x": 157,
+                    "y": 105
+                },
+                "type": "Base Material Foreign Object"
+            },
+            {
+                "box": {
+                    "height": 31,
+                    "width": 139,
+                    "x": 0,
+                    "y": 98
+                },
+                "type": "Base Material Foreign Object"
+            }
+        ],
+        "filename": "0100850.jpg",
+        "total_defects": 2
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 42,
+                    "width": 104,
+                    "x": 48,
+                    "y": 91
+                },
+                "type": "Base Material Foreign Object"
+            }
+        ],
+        "filename": "0102708.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 74,
+                    "width": 45,
+                    "x": 66,
+                    "y": 29
+                },
+                "type": "Conductor Scratch"
+            }
+        ],
+        "filename": "0103645.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 88,
+                    "width": 120,
+                    "x": 43,
+                    "y": 62
+                },
+                "type": "Base Material Foreign Object"
+            },
+            {
+                "box": {
+                    "height": 60,
+                    "width": 66,
+                    "x": 97,
+                    "y": 87
+                },
+                "type": "Mouse Bite"
+            }
+        ],
+        "filename": "0103984.jpg",
+        "total_defects": 2
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 29,
+                    "width": 29,
+                    "x": 82,
+                    "y": 93
+                },
+                "type": "Base Material Foreign Object"
+            },
+            {
+                "box": {
+                    "height": 19,
+                    "width": 15,
+                    "x": 34,
+                    "y": 109
+                },
+                "type": "Base Material Foreign Object"
+            }
+        ],
+        "filename": "0105630.jpg",
+        "total_defects": 2
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 65,
+                    "width": 57,
+                    "x": 93,
+                    "y": 97
+                },
+                "type": "Base Material Foreign Object"
+            }
+        ],
+        "filename": "0105831.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 76,
+                    "width": 77,
+                    "x": 95,
+                    "y": 18
+                },
+                "type": "Conductor Foreign Object"
+            }
+        ],
+        "filename": "0105947.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 76,
+                    "width": 77,
+                    "x": 81,
+                    "y": 92
+                },
+                "type": "Conductor Foreign Object"
+            }
+        ],
+        "filename": "0105948.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 10,
+                    "width": 20,
+                    "x": 98,
+                    "y": 104
+                },
+                "type": "Mouse Bite"
+            }
+        ],
+        "filename": "0105992.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 24,
+                    "width": 31,
+                    "x": 82,
+                    "y": 101
+                },
+                "type": "Base Material Foreign Object"
+            }
+        ],
+        "filename": "0106083.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 81,
+                    "width": 101,
+                    "x": 56,
+                    "y": 47
+                },
+                "type": "Conductor Foreign Object"
+            }
+        ],
+        "filename": "0106128.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 12,
+                    "width": 11,
+                    "x": 109,
+                    "y": 100
                 },
                 "type": "Open"
             }
         ],
-        "filename": "Missing_hole_01_missing_hole_19.jpg",
-        "total_defects": 2
+        "filename": "0106191.jpg",
+        "total_defects": 1
     },
     {
         "defects": [
             {
                 "box": {
-                    "height": 46,
-                    "width": 71,
-                    "x": 2521,
-                    "y": 240
+                    "height": 21,
+                    "width": 32,
+                    "x": 86,
+                    "y": 94
                 },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 44,
-                    "width": 83,
-                    "x": 2629,
-                    "y": 1108
-                },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 44,
-                    "width": 74,
-                    "x": 220,
-                    "y": 578
-                },
-                "type": "Short"
+                "type": "Spurious Copper"
             }
         ],
-        "filename": "Missing_hole_01_missing_hole_20.jpg",
+        "filename": "0106207.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 14,
+                    "width": 14,
+                    "x": 101,
+                    "y": 109
+                },
+                "type": "Mouse Bite"
+            }
+        ],
+        "filename": "0107400.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 22,
+                    "width": 14,
+                    "x": 109,
+                    "y": 107
+                },
+                "type": "Open"
+            }
+        ],
+        "filename": "0107865.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 13,
+                    "width": 13,
+                    "x": 100,
+                    "y": 104
+                },
+                "type": "Spur"
+            }
+        ],
+        "filename": "0107973.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 15,
+                    "width": 24,
+                    "x": 102,
+                    "y": 105
+                },
+                "type": "Mouse Bite"
+            }
+        ],
+        "filename": "0108225.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [],
+        "filename": "0108252.jpg",
+        "total_defects": 0
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 7,
+                    "width": 9,
+                    "x": 166,
+                    "y": 195
+                },
+                "type": "Spur"
+            }
+        ],
+        "filename": "0108337.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 15,
+                    "width": 25,
+                    "x": 107,
+                    "y": 104
+                },
+                "type": "Spur"
+            }
+        ],
+        "filename": "0108353.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 14,
+                    "width": 13,
+                    "x": 102,
+                    "y": 84
+                },
+                "type": "Spur"
+            }
+        ],
+        "filename": "0150006.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 22,
+                    "width": 17,
+                    "x": 97,
+                    "y": 91
+                },
+                "type": "Spurious Copper"
+            }
+        ],
+        "filename": "0223131.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 20,
+                    "width": 42,
+                    "x": 72,
+                    "y": 94
+                },
+                "type": "Spurious Copper"
+            },
+            {
+                "box": {
+                    "height": 24,
+                    "width": 61,
+                    "x": 23,
+                    "y": 23
+                },
+                "type": "Spurious Copper"
+            },
+            {
+                "box": {
+                    "height": 22,
+                    "width": 59,
+                    "x": 117,
+                    "y": 95
+                },
+                "type": "Spurious Copper"
+            }
+        ],
+        "filename": "0224275.jpg",
         "total_defects": 3
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 19,
+                    "width": 24,
+                    "x": 94,
+                    "y": 96
+                },
+                "type": "Conductor Foreign Object"
+            }
+        ],
+        "filename": "0273631.jpg",
+        "total_defects": 1
     },
     {
         "defects": [
             {
                 "box": {
                     "height": 61,
-                    "width": 68,
-                    "x": 2131,
-                    "y": 756
-                },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 50,
-                    "width": 70,
-                    "x": 2109,
-                    "y": 1586
-                },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 69,
-                    "width": 67,
-                    "x": 1398,
-                    "y": 976
+                    "width": 76,
+                    "x": 90,
+                    "y": 85
                 },
                 "type": "Short"
             }
         ],
-        "filename": "Missing_hole_04_missing_hole_01.jpg",
-        "total_defects": 3
+        "filename": "0273804.jpg",
+        "total_defects": 1
     },
     {
         "defects": [
             {
                 "box": {
-                    "height": 56,
-                    "width": 69,
-                    "x": 1225,
-                    "y": 1782
+                    "height": 124,
+                    "width": 115,
+                    "x": 84,
+                    "y": 77
                 },
-                "type": "Short"
+                "type": "Base Material Foreign Object"
+            }
+        ],
+        "filename": "0273884.jpg",
+        "total_defects": 1
+    },
+    {
+        "defects": [
+            {
+                "box": {
+                    "height": 94,
+                    "width": 58,
+                    "x": 58,
+                    "y": 59
+                },
+                "type": "Base Material Foreign Object"
             },
             {
                 "box": {
-                    "height": 57,
-                    "width": 67,
-                    "x": 994,
-                    "y": 757
+                    "height": 40,
+                    "width": 20,
+                    "x": 26,
+                    "y": 88
                 },
-                "type": "Short"
+                "type": "Conductor Foreign Object"
             }
         ],
-        "filename": "Missing_hole_04_missing_hole_02.jpg",
+        "filename": "0273905.jpg",
         "total_defects": 2
-    },
-    {
-        "defects": [
-            {
-                "box": {
-                    "height": 58,
-                    "width": 67,
-                    "x": 1280,
-                    "y": 1305
-                },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 59,
-                    "width": 67,
-                    "x": 2469,
-                    "y": 1587
-                },
-                "type": "Short"
-            },
-            {
-                "box": {
-                    "height": 58,
-                    "width": 64,
-                    "x": 707,
-                    "y": 1643
-                },
-                "type": "Short"
-            }
-        ],
-        "filename": "Missing_hole_04_missing_hole_03.jpg",
-        "total_defects": 3
     }
 ]
