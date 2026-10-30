@@ -4,6 +4,7 @@ project(OpenCV_YOLO_CUDA)
 # Принудительно заменяет макрос на пустую инструкцию только для компилятора MSVC
 add_compile_options("/D__builtin_verbose_trap(a,b)=__noop")
 add_compile_options("/utf-8")
+add_compile_definitions(NOMINMAX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -63,9 +64,33 @@ include_directories("${ONNX_ROOT}/build/native/include")
 include_directories("${ONNX_ROOT}")
 
 # ============================================================================
-# СБОРКА И ЛИНКОВКА ИСПОЛНЯЕМОГО ФАЙЛА
+# ЦЕЛЬ 1: консольная пакетная обработка (как раньше)
 # ============================================================================
-add_executable(${PROJECT_NAME} WIN32
+add_executable(${PROJECT_NAME}
+        main.cpp
+        Preprocessor.cpp
+        visualizer.cpp
+        detector.cpp
+        FpsCounter.cpp
+        VideoStreamer.cpp
+        results_json.cpp
+)
+
+target_link_libraries(${PROJECT_NAME}
+        ${OpenCV_LIBS}
+        onnxruntime.lib
+        nlohmann_json::nlohmann_json
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+        ${OpenCV_INCLUDE_DIRS}
+        ${CMAKE_SOURCE_DIR}/include
+)
+
+# ============================================================================
+# ЦЕЛЬ 2: GUI-приложение (ImGui + DX11)
+# ============================================================================
+add_executable(pcb_gui WIN32
         gui/d3d11_texture.cpp
         gui/batch_runner.cpp
         gui/main_gui.cpp
@@ -74,18 +99,17 @@ add_executable(${PROJECT_NAME} WIN32
         visualizer.cpp
 )
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(pcb_gui PRIVATE
+        imgui
         ${OpenCV_LIBS}
         onnxruntime.lib
         nlohmann_json::nlohmann_json
-        imgui
         ole32
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE
+target_include_directories(pcb_gui PRIVATE
         ${OpenCV_INCLUDE_DIRS}
         ${CMAKE_SOURCE_DIR}/include
-
 )
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE UNICODE _UNICODE)
+target_compile_definitions(pcb_gui PRIVATE UNICODE _UNICODE)
