@@ -1,6 +1,5 @@
 #define NOMINMAX
 
-#include "results_json.h"
 #include "results_json.hpp"
 
 #include <algorithm>
@@ -43,11 +42,11 @@ std::string makeDefectId(const std::string &boardId, int zeroBasedIndex) {
 // принимает int, и если char отрицательный (русские буквы в CP1251 —
 // значения >127 становятся отрицательными!), в tolower уйдёт отрицательное
 // число — это неопределённое поведение (UB). Каст "съедает" знак.
-static bool isImageFile(const std::filesystem::path &path) {
+static bool isImageFile(const std::filesystem::path& p) {
     std::string ext = p.extension().string();
     std::transform(ext.begin(), ext.end(), ext.begin(),
         [](unsigned char c){return static_cast<char>(std::tolower(c)); });
-    return ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".bpm";
+    return ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".bmp";
 }
 
 
@@ -120,10 +119,19 @@ nlohmann::ordered_json boardRecordToJson(const BoardRecord& rec) {
 
 // buildResultsJson: весь отчёт — JSON-массив из записей по всем платам.
 
-nlohmann::ordered_json buildResultsJson(const std::vector<BoardRecor>& records) {
+nlohmann::ordered_json buildResultsJson(const std::vector<BoardRecord>& records) {
     nlohmann::ordered_json root = nlohmann::ordered_json::array();
     for (const auto& rec : records) {
         root.push_back(boardRecordToJson(rec));
     }
     return root;
+}
+
+std::string makeResultFilename (const std::string& boardId, const std::string& sourceFilename) {
+    std::filesystem::path source(sourceFilename);
+    std::string ext = source.extension().string();
+    if (ext.empty()) {
+        ext = ".jpg";
+    }
+        return boardId + ext;
 }

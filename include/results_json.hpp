@@ -24,7 +24,7 @@ struct BoardRecord {
 std::string makeBoardId(int zeroBasedIndex);
 
 // ID отдельного дефекта внутри платы: ("PCB-0001", 0)
-std::string makeDeffectId(const std::string &boardId,  int zeroBasedIndex);
+std::string makeDefectId(const std::string &boardId,  int zeroBasedIndex);
 
 // Возвращает список картинок в папке, ОТСОРТИРОВАННЫЙ по имени файла.
 //
@@ -43,4 +43,7 @@ std::vector<std::filesystem::path> listImageFilesSorted(const std::string& utf8D
 nlohmann::ordered_json boardRecordToJson(const BoardRecord& rec );
 
 // Полный отчёт: массив записей по всем платам.
-nlohmann::ordered_json buildResultsJson(std::vector<BoardRecord>& records);
+nlohmann::ordered_json buildResultsJson(const std::vector<BoardRecord>& records);
+
+//имя сохраняемого файла типа "PCB-%%%", вместо старого
+std::string makeResultFilename(const std::string& boardId, const std::string& sourceFilename);

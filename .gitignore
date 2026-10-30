@@ -2,6 +2,7 @@
 cmake-build-debug/
 cmake-build-release/
 cmake-build-debug-visual-studio/
+.zcode/
 /build/
 pcb_train_pic/
 pcb_train_res/

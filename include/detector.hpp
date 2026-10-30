@@ -14,7 +14,9 @@ class Detector {
 public:
     Detector();
     ~Detector() = default;
-    std::vector<Detection> detect(const cv::Mat& input);
+    std::vector<Detection> detect(const cv::Mat& input,
+        float confidenceThreshold = 0.25f,
+        float nmsThreshold = 0.4f);
 
 private:
     // Объекты окружения и сессии ONNX Runtime
@@ -25,8 +27,7 @@ private:
     // Параметры модели
     int inputWidth = 320;
     int inputHeight = 320;
-    float confidenceThreshold = 0.25f;
-    float nmsThreshold = 0.4f;
+
 
     std::vector<std::string> classesCopper;
     std::vector<std::string> classesGreen;

@@ -8,43 +8,13 @@
 #include <nlohmann/json.hpp>
 #include "detector.hpp"
 #include "visualizer.hpp"
+#include "results_json.hpp"
 
-namespace fs = std::filesystem;
+#include "fs_utf8.hpp"
+
 using namespace cv;
 using namespace std;
-using json = nlohmann::json;
-namespace fs = std::filesystem;
 
-
-// Структура для одного дефекта
-struct Defect {
-    std::string type;
-    cv::Rect box;
-};
-
-// Функция, которая упаковывает данные одного изображения в JSON-объект
-nlohmann::ordered_json processImageResults(const std::string& fileName, const std::vector<Detection>& detections) {
-    nlohmann::ordered_json imageJson;
-    imageJson["filename"] = fileName;
-    imageJson["total_defects"] = detections.size();
-    imageJson["defects"] = nlohmann::ordered_json::array();
-
-    for (const auto& det : detections) {
-        nlohmann::ordered_json defectJson;
-
-        // Используем актуальные поля из структуры Detection: className и bbox
-        defectJson["type"] = det.className;
-
-        defectJson["box"] = {
-                {"x", det.bbox.x},
-                {"y", det.bbox.y},
-                {"width", det.bbox.width},
-                {"height", det.bbox.height}
-        };
-        imageJson["defects"].push_back(defectJson);
-    }
-    return imageJson;
-}
 
 
 // Ленивая инициализация компонентов
@@ -67,13 +37,6 @@ Visualizer& getVisualizer() {
     return visualizer;
 }
 
-// Вспомогательный метод для фильтрации только графических файлов
-bool isImage(const fs::path& path) {
-    std::string ext = path.extension().string();
-    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-    return (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".bmp");
-}
-
 int main() {
     // Принудительно переключаем вывод консоли в UTF-8
     SetConsoleOutputCP(CP_UTF8);
@@ -85,46 +48,41 @@ int main() {
     std::string outputFolderPath = "C:/Users/sulim/CLionProjects/OpenCV_YOLO_C-/pcb_pic_res";      // Папка для сохранения результатов
 
     // Проверяем существование входной директории
-    if (!fs::exists(inputFolderPath) || !fs::is_directory(inputFolderPath)) {
-        std::cerr << "[Main] КРИТИЧЕСКАЯ ОШИБКА: Входная папка с изображениями не найдена по пути: "
-                  << inputFolderPath << std::endl;
+    std::vector<std::filesystem::path> files = listImageFilesSorted (inputFolderPath);
+    if (files.empty()) {
+        std::cerr << "[Main] ОШИБКА! входная папка не найдена или изоюражений нет" <<
+            inputFolderPath << std::endl;
         return -1;
     }
 
-    // Автоматически создаем выходную папку, если её ещё нет на диске
-    if (!fs::exists(outputFolderPath)) {
-        fs::create_directories(outputFolderPath);
-    }
-
-    std::string globalJsonPath = (fs::path(outputFolderPath) / "global_results.json").string();
-
-    // Создаем  JSON-массив, для описания обработанных изображений
-    json rootResultArray = json::array();
+    // создаем выходную папку, если её ещё нет на диске
+   std::filesystem::create_directory(fsu8::pathFromUtf8(outputFolderPath));
 
     // Предварительный подсчет файлов для вывода прогресса в консоль
-    int totalImages = 0;
-    for (const auto& entry : fs::directory_iterator(inputFolderPath)) {
-        if (fs::is_regular_file(entry.path()) && isImage(entry.path())) {
-            totalImages++;
-        }
-    }
-
+    int totalImages = static_cast<int>(files.size());
     std::cout << "[Main] Модули готовы. Найдено изображений для анализа: " << totalImages << std::endl;
     std::cout << "[Main] Начинаем пакетную обработку плат..." << std::endl;
 
-    // 2. Основной цикл последовательного чтения папки
+    // 2. Основной цикл по отсортированному списку
+
+    std::vector<BoardRecord> records;
+    records.reserve(totalImages);
+
     int processedCount = 0;
-    for (const auto& entry : fs::directory_iterator(inputFolderPath)) {
-        if (fs::is_regular_file(entry.path()) && isImage(entry.path())) {
-
+    for (const auto& filePath : files) {
             processedCount++;
-            std::string currentImgPath = entry.path().string();
-            std::string filename = entry.path().filename().string();
 
-            std::cout << "[" << processedCount << "/" << totalImages << "] Анализ платы: " << filename << " -> ";
+        // ID привязан к ПОЗИЦИИ в отсортированном списке, а не к успеху чтения:
+        // если один файл битый, его номер пропустится, но остальные ID не сдвинутся
+        std::string boardId = makeBoardId(processedCount -1);
+        std::string filename = fsu8::pathToUtf8(filePath.filename());
+        std::string fullPath = fsu8::pathToUtf8(filePath);
+
+            std::cout << "[" << processedCount << "/" << totalImages << "] " <<
+                boardId << " Анализ платы: " << filename << " -> ";
 
             // Считываем файл в матрицу OpenCV
-            cv::Mat frame = cv::imread(currentImgPath);
+            cv::Mat frame = fsu8::imreadUtf8(fullPath);
             if (frame.empty()) {
                 std::cerr << "Ошибка чтения файла изображения!" << std::endl;
                 continue;
@@ -138,25 +96,34 @@ int main() {
             // Передаем 0.0 вместо FPS, так как для статичных файлов этот параметр не используется
             getVisualizer().draw(frame, detections, 0.0);
 
+            std::string resultFilename = makeResultFilename(boardId,filename);
+
             // Сохраняем обработанную матрицу на жесткий диск
-            std::string savePath = outputFolderPath + "/" + filename;
-            if (!cv::imwrite(savePath, frame)) {
+            std::string savePath = outputFolderPath + "/" + resultFilename;
+            if (!fsu8::imwriteUtf8(savePath, frame)) {
                 std::cerr << "Критическая ошибка при записи файла: " << savePath << std::endl;
             }
 
-            json currentImageJson = processImageResults(filename, detections);
-            rootResultArray.push_back(currentImageJson);
-        }
-    }
+        BoardRecord rec;
+        rec.id = boardId;
+        rec.filename = resultFilename;
+        rec.defects = detections;
+        records.push_back(rec);
 
+        }
 
 // Записываем результаты в json файл
     std::string finalReportPath = outputFolderPath + "/global_results.json";
-    std::ofstream file(finalReportPath);
+    nlohmann::ordered_json report = buildResultsJson(records);
+
+
+    std::ofstream file(fsu8::pathFromUtf8(finalReportPath));
     if (file.is_open()) {
-        file << rootResultArray.dump(4);
+        file << report.dump(4);
         file.close();
         std::cout << "\nОбщий JSON-отчет сохранен: " << finalReportPath << std::endl;
+    }else {
+        std::cerr << "[Main] Не удались открыть файл для записи: " << finalReportPath << std::endl;
     }
     std::cout << "[Main] Программа успешно завершила работу." << std::endl;
     std::cout << "[Main] Все обработанные изображения сохранены в папку: " << outputFolderPath << std::endl;

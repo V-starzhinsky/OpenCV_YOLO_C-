@@ -49,7 +49,10 @@ void Detector::loadClassNames(const std::string& path, std::vector<std::string>&
     }
 }
 
-std::vector<Detection> Detector::detect(const cv::Mat& input) {
+std::vector<Detection> Detector::detect(const cv::Mat& input,
+    float confidenceThreshold,
+    float nmsThreshold)
+{
     if (input.empty()) return {};
 
     int originalWidth = input.cols;

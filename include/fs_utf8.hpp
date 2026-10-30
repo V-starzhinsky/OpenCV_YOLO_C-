@@ -44,14 +44,10 @@ namespace fsu8 {
         int needed = WideCharToMultiByte(CP_UTF8, 0, wide.c_str(), -1, nullptr, 0, nullptr, nullptr);
         if (needed <= 0) {return std::string();}
         std::string result(static_cast<size_t>(needed) - 1, '\0');
-        WideCharToMultiByte(CP_UTF8, 0, wide.c_str(),-1, &ewsult[0], needed, nullptr, nullptr);
+        WideCharToMultiByte(CP_UTF8, 0, wide.c_str(),-1, &result[0], needed, nullptr, nullptr);
         return result;
     }
 
-    // wideToUtf8: обратное преобразование std::wstring (UTF-16) -> std::string
-    // (UTF-8). Нужно, например, чтобы перевести путь, выбранный пользователем
-    // в системном диалоге выбора папки (диалог возвращает wchar_t*), в наш
-    // внутренний формат UTF-8.
 
     inline std::filesystem::path pathFromUtf8 (const std::string& utf8) {
         return std::filesystem::path(utf8toWide(utf8));
