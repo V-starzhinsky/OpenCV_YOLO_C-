@@ -56,6 +56,7 @@ struct RunSettings {
 
     bool saveImages = false;
     bool stampId = false;
+    bool showOriginalView = false;
 };
 
 

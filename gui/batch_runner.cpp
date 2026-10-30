@@ -30,7 +30,7 @@ void BatchRunner::start(AppState &state) {
     state.cancelRequested = false;
 
     RunSettings snapshot = state.settings;
-    thread_ = std::thread([this, &state, &snapshot]() {
+    thread_ = std::thread([this, &state, snapshot]() {
         run(state,snapshot);
     });
 }
